@@ -180,7 +180,7 @@
 
   <!-- JavaScript -->
   <script>
-    const firebaseUrl = "https://ortho-61f64-default-rtdb.firebaseio.com/instruments.json";
+    const firebaseUrl = "https://orthopod-f8a90-default-rtdb.firebaseio.com/instruments.json";
     let inventory = [];
 
     const searchBar = document.getElementById('searchBar');
@@ -209,9 +209,9 @@
         } else {
           const haystack = [
             (item.Item || '').toLowerCase(),
-            (item.ItemReference || '').toLowerCase(),
-            (item.TrayInclusionProductCategory || '').toLowerCase(),
-            (item.TrayReference || '').toLowerCase()
+            (item.ItemID || '').toLowerCase(),
+            (item.InclusionProductCategory || '').toLowerCase(),
+            (item.StockID || '').toLowerCase()
           ];
           return haystack.some(field => field.includes(searchValue));
         }
@@ -232,15 +232,15 @@
         let html = '';
 
         html += `<strong>Item:</strong> ${item.Item} <br />
-                 <strong>Item Reference:</strong> ${item.ItemReference} <br />
-                 <strong>Tray Inclusion/Product Category:</strong> ${item.TrayInclusionProductCategory} <br />
-                 <strong>Tray Reference:</strong> ${item.TrayReference} <br />
+                 <strong>Item ID:</strong> ${item.ItemReference} <br />
+                 <strong>Inclusion/Product Category:</strong> ${item.InclusionProductCategory} <br />
+                 <strong>Stock ID:</strong> ${item.StockID} <br />
                  <strong>Stock Level:</strong> ${item.StockLevel} <br />
                  <strong>Total Count:</strong> ${item.TotalCount} <br />
                  <strong>Storage Location:</strong> ${item.StorageLocation} <br />`;
 
-        if (item.TrayInclusionProductCategory) {
-          html += `<a href="instrument-checklist.html?category=${encodeURIComponent(item.TrayInclusionProductCategory)}" class="instrument-link">Instrument Checklist</a>`;
+        if (item.InclusionProductCategory) {
+          html += `<a href="instrument-checklist.html?category=${encodeURIComponent(item.InclusionProductCategory)}" class="instrument-link">Instrument Checklist</a>`;
         }
 
         div.innerHTML = html;
