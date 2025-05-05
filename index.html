@@ -171,9 +171,9 @@
 
   <div id="filters" style="margin-top: 1rem; margin-bottom: 2rem;">
     <button class="filter-btn active" data-field="Item">Search by Item</button>
-    <button class="filter-btn" data-field="ItemReference">Search by Item ID</button>
-    <button class="filter-btn" data-field="TrayInclusionProductCategory">Search by Inclusion / Category</button>
-    <button class="filter-btn" data-field="TrayReference">Search by Stock ID</button>
+    <button class="filter-btn" data-field="ItemID">Search by Item ID</button>
+    <button class="filter-btn" data-field="InclusionCategory">Search by Category</button>
+    <button class="filter-btn" data-field="StockID">Search by Stock ID</button>
   </div>
 
   <div id="results">Loading inventory...</div>
@@ -189,9 +189,9 @@
 
     const placeholderMap = {
       Item: "Search for Instrument or Consumable e.g. Mallet",
-      ItemReference: "Enter Product or Item (Synergy) Reference e.g. XU2129",
-      TrayInclusionProductCategory: "Enter the Instrument Tray name e.g. Mini Driver Tray",
-      TrayReference: "Enter the Reference no. for the Tray or Single Item"
+      ItemID: "Enter Item ID e.g. U0799960",
+      InclusionCategory: "Enter Category e.g. MINI DRIVER TRAY",
+      StockID: "Enter Stock ID e.g. ZR6830"
     };
 
     document.querySelectorAll('.filter-btn').forEach(btn => {
@@ -223,9 +223,9 @@
 
         const fields = {
           "Item": item.Item || '',
-          "ItemReference": item.ItemReference || '',
-          "TrayInclusionProductCategory": item.TrayInclusionProductCategory || '',
-          "TrayReference": item.TrayReference || '',
+          "ItemID": item.ItemID || '',
+          "InclusionCategory": item.InclusionCategory || '',
+          "StockID": item.StockID || '',
           "StockLevel": item.StockLevel || '',
           "TotalCount": item.TotalCount || '',
           "StorageLocation": item.StorageLocation || ''
@@ -233,17 +233,14 @@
 
         let html = `
           <strong>Item:</strong> ${highlightMatch(fields.Item, query)} <br />
-          <strong>Item Reference:</strong> ${highlightMatch(fields.ItemReference, query)} <br />
-          <strong>Tray Inclusion/Product Category:</strong> ${highlightMatch(fields.TrayInclusionProductCategory, query)} <br />
-          <strong>Tray Reference:</strong> ${highlightMatch(fields.TrayReference, query)} <br />
+          <strong>Item ID:</strong> ${highlightMatch(fields.ItemID, query)} <br />
+          <strong>Category:</strong> ${highlightMatch(fields.InclusionCategory, query)} <br />
+          <strong>Stock ID:</strong> ${highlightMatch(fields.StockID, query)} <br />
           <strong>Stock Level:</strong> ${fields.StockLevel} <br />
           <strong>Total Count:</strong> ${fields.TotalCount} <br />
           <strong>Storage Location:</strong> ${fields.StorageLocation} <br />
+          <a href="instrument-checklist.html?category=${encodeURIComponent(fields.InclusionCategory)}" class="instrument-link">Instrument Checklist</a>
         `;
-
-        if (fields.TrayInclusionProductCategory) {
-          html += `<a href="instrument-checklist.html?category=${encodeURIComponent(fields.TrayInclusionProductCategory)}" class="instrument-link">Instrument Checklist</a>`;
-        }
 
         div.innerHTML = html;
         resultsDiv.appendChild(div);
