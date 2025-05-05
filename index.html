@@ -171,7 +171,7 @@
   <div id="filters" style="margin-top: 1rem; margin-bottom: 2rem;">
     <button class="filter-btn" data-field="Item">Search by Item</button>
     <button class="filter-btn" data-field="ItemID">Search by Item ID</button>
-    <button class="filter-btn" data-field="InclusionProductCategory">Search by Inclusion / Product Category</button>
+    <button class="filter-btn" data-field="InclusionAndCategory">Search by Inclusion / Product Category</button>
     <button class="filter-btn" data-field="StockID">Search by Stock ID</button>
   </div>
 
@@ -203,17 +203,16 @@
       if (query === '') return;
 
       const filtered = inventory.filter(item => {
-        const searchValue = query.toLowerCase();
         if (activeField && item[activeField]) {
-          return (item[activeField] || '').toLowerCase().includes(searchValue);
+          return (item[activeField] || '').toLowerCase().includes(query);
         } else {
           const haystack = [
             (item.Item || '').toLowerCase(),
-            (item.ItemReference || '').toLowerCase(),
-            (item.TrayInclusionProductCategory || '').toLowerCase(),
-            (item.TrayReference || '').toLowerCase()
+            (item.ItemID || '').toLowerCase(),
+            (item.InclusionAndCategory || '').toLowerCase(),
+            (item.StockID || '').toLowerCase()
           ];
-          return haystack.some(field => field.includes(searchValue));
+          return haystack.some(field => field.includes(query));
         }
       });
 
@@ -232,16 +231,12 @@
         let html = '';
 
         html += `<strong>Item:</strong> ${item.Item} <br />
-                 <strong>Item Reference:</strong> ${item.ItemReference} <br />
-                 <strong>Tray Inclusion/Product Category:</strong> ${item.TrayInclusionProductCategory} <br />
-                 <strong>Tray Reference:</strong> ${item.TrayReference} <br />
+                 <strong>Item ID:</strong> ${item.ItemID} <br />
+                 <strong>Inclusion/Product Category:</strong> ${item.InclusionAndCategory} <br />
+                 <strong>Stock ID:</strong> ${item.StockID} <br />
                  <strong>Stock Level:</strong> ${item.StockLevel} <br />
                  <strong>Total Count:</strong> ${item.TotalCount} <br />
                  <strong>Storage Location:</strong> ${item.StorageLocation} <br />`;
-
-        if (item.TrayInclusionProductCategory) {
-          html += `<a href="instrument-checklist.html?category=${encodeURIComponent(item.TrayInclusionProductCategory)}" class="instrument-link">Instrument Checklist</a>`;
-        }
 
         div.innerHTML = html;
         resultsDiv.appendChild(div);
@@ -249,7 +244,7 @@
     }
 
     function fetchInventory() {
-      fetch(firebaseUrl)
+      fetch(firebaseUrl + "/instruments.json")
         .then(response => response.json())
         .then(data => {
           inventory = Object.values(data || {});
