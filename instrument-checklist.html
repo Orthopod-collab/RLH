@@ -3,153 +3,126 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Instrument Checklist</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <title id="pageTitle">Instrument Checklist</title>
   <style>
     body {
-      font-family: 'Poppins', Arial, sans-serif;
+      font-family: Arial, sans-serif;
       padding: 2rem;
-      background: #f2f2f2;
+      background: #f4f4f4;
+      color: #333;
       text-align: center;
     }
 
     h2 {
-      font-family: 'Poppins', sans-serif;
-      font-size: 2.8rem;
-      margin-bottom: 20px;
-    }
-
-    h3 {
       font-size: 1.8rem;
-      margin-top: 1rem;
-      color: #4285f4;
+      margin-bottom: 1.5rem;
     }
 
     table {
       width: 100%;
-      border-collapse: collapse;
+      max-width: 800px;
       margin: 0 auto;
+      border-collapse: collapse;
+      background: white;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      text-align: left;
     }
 
     th, td {
-      padding: 12px;
-      text-align: left;
+      padding: 0.75rem 1rem;
       border-bottom: 1px solid #ddd;
     }
 
     th {
-      font-weight: bold;
-      background-color: #f9f9f9;
-    }
-
-    td {
-      background-color: white;
+      background-color: #f0f0f0;
     }
 
     tr:last-child td {
       border-bottom: none;
     }
 
-    #backBtn {
-      margin: 20px;
-      padding: 10px 20px;
-      background-color: #4285f4;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 1rem;
+    .back-link {
+      display: inline-block;
+      margin-bottom: 1.5rem;
+      text-decoration: none;
+      color: #4285f4;
+      font-weight: bold;
     }
 
-    #backBtn:hover {
-      background-color: #357ae8;
+    .back-link:hover {
+      text-decoration: underline;
+    }
+
+    .instrument-link {
+      color: #4285f4;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .instrument-link:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
 <body>
 
-  <h2>Instrument Checklist</h2>
+  <a class="back-link" href="index.html">← Back to Search</a>
+  <h2 id="checklistTitle">Instrument Checklist</h2>
 
-  <h3 id="categoryHeader">Loading category...</h3>
-
-  <div id="results">Loading checklist...</div>
-
-  <button id="backBtn" onclick="window.location.href = 'index.html';">Back to Main Page</button>
+  <table id="checklistTable">
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th>Item ID</th>
+        <th>Quantity</th>
+      </tr>
+    </thead>
+    <tbody id="checklistBody">
+      <tr><td colspan="3">Loading...</td></tr>
+    </tbody>
+  </table>
 
   <script>
-    const firebaseUrl = "https://orthopod-f8a90-default-rtdb.firebaseio.com/instruments.json";
-    let inventory = [];
-    const resultsDiv = document.getElementById('results');
-    const categoryHeader = document.getElementById('categoryHeader');
+    const params = new URLSearchParams(window.location.search);
+    const category = params.get('category');
+    const checklistBody = document.getElementById('checklistBody');
+    const checklistTitle = document.getElementById('checklistTitle');
+    const pageTitle = document.getElementById('pageTitle');
 
-    // Get the category from the URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const category = urlParams.get('category');
+    checklistTitle.textContent = `Instrument Checklist: ${category || "Unknown"}`;
+    pageTitle.textContent = `Instrument Checklist: ${category || "Unknown"}`;
 
-    // Fetch inventory and filter by the TrayInclusionProductCategory
-    function fetchInventory() {
-      fetch(firebaseUrl)
-        .then(response => response.json())
-        .then(data => {
-          inventory = Object.values(data || {});
-          filterByCategory(category);
-        })
-        .catch(error => {
-          resultsDiv.innerHTML = 'Error loading inventory.';
-          console.error("Firebase fetch error:", error);
+    const firebaseUrl = "https://ortho-61f64-default-rtdb.firebaseio.com/instruments.json";
+
+    fetch(firebaseUrl)
+      .then(response => response.json())
+      .then(data => {
+        const inventory = Object.values(data || {});
+        const matching = inventory.filter(item => 
+          (item.InclusionCategory || '').toLowerCase() === (category || '').toLowerCase()
+        );
+
+        if (matching.length === 0) {
+          checklistBody.innerHTML = '<tr><td colspan="3">No instruments found in this category.</td></tr>';
+          return;
+        }
+
+        checklistBody.innerHTML = '';
+        matching.forEach(item => {
+          const row = document.createElement('tr');
+          const itemLink = `<a class="instrument-link" href="#">${item.Item || ''}</a>`;
+          row.innerHTML = `
+            <td>${itemLink}</td>
+            <td>${item.ItemID || ''}</td>
+            <td>${item.StockLevel || '0'}</td>
+          `;
+          checklistBody.appendChild(row);
         });
-    }
-
-    // Filter items by TrayInclusionProductCategory
-    function filterByCategory(category) {
-      if (!category) {
-        resultsDiv.innerHTML = 'No category selected.';
-        return;
-      }
-
-      // Find the TrayReference associated with the category
-      const categoryItem = inventory.find(item => item.TrayInclusionProductCategory === category);
-      const trayReference = categoryItem ? categoryItem.TrayReference : 'N/A';
-
-      // Display the selected category name and tray reference as the header
-      categoryHeader.innerHTML = `${category} REF:${trayReference}`;
-
-      const filteredItems = inventory.filter(item => item.TrayInclusionProductCategory === category);
-
-      if (filteredItems.length === 0) {
-        resultsDiv.innerHTML = 'No items found in this category.';
-        return;
-      }
-
-      renderResults(filteredItems);
-    }
-
-    function renderResults(items) {
-      let html = `
-        <table>
-          <tr>
-            <th>Instrument</th>
-            <th>Item Reference</th>
-            <th>Quantity</th>
-          </tr>
-      `;
-
-      items.forEach(item => {
-        html += `
-          <tr>
-            <td>${item.Item}</td>
-            <td>${item.ItemReference}</td>
-            <td>${item.StockLevel || 'N/A'}</td> <!-- Display StockLevel if available -->
-          </tr>
-        `;
+      })
+      .catch(err => {
+        console.error(err);
+        checklistBody.innerHTML = '<tr><td colspan="3">Error loading checklist.</td></tr>';
       });
-
-      html += `</table>`;
-      resultsDiv.innerHTML = html;
-    }
-
-    // Load inventory data when the page is loaded
-    fetchInventory();
   </script>
 
 </body>
