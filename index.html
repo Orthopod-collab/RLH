@@ -170,108 +170,107 @@
   <!-- Filter Buttons -->
   <div id="filters" style="margin-top: 1rem; margin-bottom: 2rem;">
     <button class="filter-btn" data-field="Item">Search by Item</button>
-    <button class="filter-btn" data-field="ItemID">Search by Item Reference</button>
-    <button class="filter-btn" data-field="InclusionProductCategory">Search by Inclusion / Product Category</button>
-    <button class="filter-btn" data-field="StockID">Search by Stock ID</button>
+    <button class="filter-btn" data-field="ItemReference">Search by Item Reference</button>
+    <button class="filter-btn" data-field="TrayInclusionProductCategory">Search by Tray Inclusion / Product Category</button>
+    <button class="filter-btn" data-field="TrayReference">Search by Tray Reference</button>
   </div>
 
   <!-- Results -->
   <div id="results">Loading inventory...</div>
 
   <!-- JavaScript -->
-<script>
-  const firebaseUrl = "https://orthopod-f8a90-default-rtdb.firebaseio.com/.json"; // Notice: `.json` at root
-  let inventory = [];
+  <script>
+    const firebaseUrl = "https://ortho-61f64-default-rtdb.firebaseio.com/instruments.json";
+    let inventory = [];
 
-  const searchBar = document.getElementById('searchBar');
-  const searchBtn = document.getElementById('searchBtn');
-  const resultsDiv = document.getElementById('results');
-  let activeField = null;
+    const searchBar = document.getElementById('searchBar');
+    const searchBtn = document.getElementById('searchBtn');
+    const resultsDiv = document.getElementById('results');
+    let activeField = null;
 
-  document.querySelectorAll('.filter-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      activeField = btn.dataset.field;
-      searchInventory();
-    });
-  });
-
-  function searchInventory() {
-    const query = searchBar.value.toLowerCase().trim();
-    resultsDiv.innerHTML = '';
-    if (query === '') return;
-
-    const filtered = inventory.filter(item => {
-      const searchValue = query.toLowerCase();
-      if (activeField && item[activeField]) {
-        return (item[activeField] || '').toLowerCase().includes(searchValue);
-      } else {
-        const haystack = [
-          (item.Item || '').toLowerCase(),
-          (item.ItemID || '').toLowerCase(),
-          (item.InclusionProductCategory || '').toLowerCase(),
-          (item.StockID || '').toLowerCase()
-        ];
-        return haystack.some(field => field.includes(searchValue));
-      }
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        activeField = btn.dataset.field;
+        searchInventory();
+      });
     });
 
-    renderResults(filtered, query);
-  }
+    function searchInventory() {
+      const query = searchBar.value.toLowerCase().trim();
+      resultsDiv.innerHTML = '';
+      if (query === '') return;
 
-  function renderResults(items, query) {
-    if (items.length === 0) {
-      resultsDiv.innerHTML = 'No matching instruments found.';
-      return;
+      const filtered = inventory.filter(item => {
+        const searchValue = query.toLowerCase();
+        if (activeField && item[activeField]) {
+          return (item[activeField] || '').toLowerCase().includes(searchValue);
+        } else {
+          const haystack = [
+            (item.Item || '').toLowerCase(),
+            (item.ItemReference || '').toLowerCase(),
+            (item.TrayInclusionProductCategory || '').toLowerCase(),
+            (item.TrayReference || '').toLowerCase()
+          ];
+          return haystack.some(field => field.includes(searchValue));
+        }
+      });
+
+      renderResults(filtered, query);
     }
 
-    items.forEach(item => {
-      const div = document.createElement('div');
-      div.className = 'result';
-      let html = '';
-
-      html += `<strong>Item:</strong> ${item.Item} <br />
-               <strong>Item ID:</strong> ${item.ItemID || item.ItemReference || ''} <br />
-               <strong>Inclusion/Product Category:</strong> ${item.InclusionProductCategory || ''} <br />
-               <strong>Stock ID:</strong> ${item.StockID || ''} <br />
-               <strong>Stock Level:</strong> ${item.StockLevel || ''} <br />
-               <strong>Total Count:</strong> ${item.TotalCount || ''} <br />
-               <strong>Storage Location:</strong> ${item.StorageLocation || ''} <br />`;
-
-      if (item.InclusionProductCategory) {
-        html += `<a href="instrument-checklist.html?category=${encodeURIComponent(item.InclusionProductCategory)}" class="instrument-link">Instrument Checklist</a>`;
+    function renderResults(items, query) {
+      if (items.length === 0) {
+        resultsDiv.innerHTML = 'No matching instruments found.';
+        return;
       }
 
-      div.innerHTML = html;
-      resultsDiv.appendChild(div);
-    });
-  }
+      items.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'result';
+        let html = '';
 
-  function fetchInventory() {
-    fetch(firebaseUrl)
-      .then(response => response.json())
-      .then(data => {
-        inventory = Object.values(data.instruments || {}); // ✅ Corrected path
-        resultsDiv.innerHTML = '';
-      })
-      .catch(error => {
-        resultsDiv.innerHTML = 'Error loading inventory.';
-        console.error("Firebase fetch error:", error);
+        html += `<strong>Item:</strong> ${item.Item} <br />
+                 <strong>Item Reference:</strong> ${item.ItemReference} <br />
+                 <strong>Tray Inclusion/Product Category:</strong> ${item.TrayInclusionProductCategory} <br />
+                 <strong>Tray Reference:</strong> ${item.TrayReference} <br />
+                 <strong>Stock Level:</strong> ${item.StockLevel} <br />
+                 <strong>Total Count:</strong> ${item.TotalCount} <br />
+                 <strong>Storage Location:</strong> ${item.StorageLocation} <br />`;
+
+        if (item.TrayInclusionProductCategory) {
+          html += `<a href="instrument-checklist.html?category=${encodeURIComponent(item.TrayInclusionProductCategory)}" class="instrument-link">Instrument Checklist</a>`;
+        }
+
+        div.innerHTML = html;
+        resultsDiv.appendChild(div);
       });
-  }
+    }
 
-  searchBtn.addEventListener('click', searchInventory);
-  searchBar.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') searchInventory();
-  });
-  searchBar.addEventListener('input', function() {
-    if (this.value.trim() === '') resultsDiv.innerHTML = '';
-  });
+    function fetchInventory() {
+      fetch(firebaseUrl)
+        .then(response => response.json())
+        .then(data => {
+          inventory = Object.values(data || {});
+          resultsDiv.innerHTML = '';
+        })
+        .catch(error => {
+          resultsDiv.innerHTML = 'Error loading inventory.';
+          console.error("Firebase fetch error:", error);
+        });
+    }
 
-  fetchInventory();
-</script>
+    searchBtn.addEventListener('click', searchInventory);
+    searchBar.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') searchInventory();
+    });
+    searchBar.addEventListener('input', function() {
+      if (this.value.trim() === '') resultsDiv.innerHTML = '';
+    });
 
+    fetchInventory();
+  </script>
 
 </body>
 </html>
