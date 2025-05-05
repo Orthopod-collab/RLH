@@ -195,22 +195,41 @@
       </div>
     </div>
 
-    <!-- Surgical Operative Techniques -->
-    <div class="section">
-      <div class="section-header" onclick="toggleSection(this)">
-        <div>Surgical Operative Techniques</div>
-        <div class="circle-icon blue">
-          <i class="fas fa-chevron-right chevron"></i>
-        </div>
-      </div>
-      <div class="section-content">
-        <a href="#">DePuy Synthes</a>
-        <a href="#">Stryker</a>
-        <a href="#">Zimmer Biomet</a>
-        <a href="#">Smith & Nephew</a>
-        <a href="#">Medartis</a>
-      </div>
-    </div>
+   function toggleSection(header) {
+  const content = header.nextElementSibling;
+  const icon = header.querySelector('.chevron');
+
+  // Close all other sections
+  const allSections = document.querySelectorAll('.section .section-content');
+  allSections.forEach(section => {
+    if (section !== content) {
+      section.style.display = "none";
+    }
+  });
+
+  // Hide both disclaimers initially
+  document.getElementById('contact-directory-disclaimer').style.display = 'none';
+  const surgicalDisclaimer = document.getElementById('surgical-disclaimer');
+  if (surgicalDisclaimer) surgicalDisclaimer.style.display = 'none';
+
+  // Toggle the current section
+  if (content.style.display === "block") {
+    content.style.display = "none";
+    icon.classList.remove('rotate');
+  } else {
+    content.style.display = "block";
+    icon.classList.add('rotate');
+
+    // Show the appropriate disclaimer
+    if (header.innerText.includes('Contact Directory')) {
+      document.getElementById('contact-directory-disclaimer').style.display = 'block';
+    }
+    if (header.innerText.includes('Surgical Operative Techniques')) {
+      if (surgicalDisclaimer) surgicalDisclaimer.style.display = 'block';
+    }
+  }
+}
+
 
     <!-- Inventory Control -->
     <div class="section">
