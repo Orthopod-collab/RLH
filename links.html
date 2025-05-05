@@ -195,41 +195,26 @@
       </div>
     </div>
 
-   function toggleSection(header) {
-  const content = header.nextElementSibling;
-  const icon = header.querySelector('.chevron');
-
-  // Close all other sections
-  const allSections = document.querySelectorAll('.section .section-content');
-  allSections.forEach(section => {
-    if (section !== content) {
-      section.style.display = "none";
-    }
-  });
-
-  // Hide both disclaimers initially
-  document.getElementById('contact-directory-disclaimer').style.display = 'none';
-  const surgicalDisclaimer = document.getElementById('surgical-disclaimer');
-  if (surgicalDisclaimer) surgicalDisclaimer.style.display = 'none';
-
-  // Toggle the current section
-  if (content.style.display === "block") {
-    content.style.display = "none";
-    icon.classList.remove('rotate');
-  } else {
-    content.style.display = "block";
-    icon.classList.add('rotate');
-
-    // Show the appropriate disclaimer
-    if (header.innerText.includes('Contact Directory')) {
-      document.getElementById('contact-directory-disclaimer').style.display = 'block';
-    }
-    if (header.innerText.includes('Surgical Operative Techniques')) {
-      if (surgicalDisclaimer) surgicalDisclaimer.style.display = 'block';
-    }
-  }
-}
-
+    <!-- Surgical Operative Techniques -->
+    <div class="section">
+      <div class="section-header" onclick="toggleSection(this)">
+        <div>Surgical Operative Techniques</div>
+        <div class="circle-icon blue">
+          <i class="fas fa-chevron-right chevron"></i>
+        </div>
+      </div>
+      <div class="section-content">
+        <!-- Disclaimer for Surgical Operative Techniques -->
+        <div class="disclaimer" id="surgical-disclaimer" style="display: none;">
+          <strong>Disclaimer:</strong> All surgical technique guides linked on this site are the property of their respective manufacturers. OrthoPod provides these links for educational and reference purposes only. We do not claim authorship. Please consult official documentation, training resources, and hospital protocols before using any device or technique.
+        </div>
+        <a href="#">DePuy Synthes</a>
+        <a href="#">Stryker</a>
+        <a href="#">Zimmer Biomet</a>
+        <a href="#">Smith & Nephew</a>
+        <a href="#">Medartis</a>
+      </div>
+    </div>
 
     <!-- Inventory Control -->
     <div class="section">
@@ -296,20 +281,25 @@
         }
       });
 
+      // Hide both disclaimers initially
+      document.getElementById('contact-directory-disclaimer').style.display = 'none';
+      const surgicalDisclaimer = document.getElementById('surgical-disclaimer');
+      if (surgicalDisclaimer) surgicalDisclaimer.style.display = 'none';
+
       // Toggle the current section
       if (content.style.display === "block") {
         content.style.display = "none";
         icon.classList.remove('rotate');
-        // Hide the disclaimer when the Contact Directory is closed
-        if (header.innerText.includes('Contact Directory')) {
-          document.getElementById('contact-directory-disclaimer').style.display = 'none';
-        }
       } else {
         content.style.display = "block";
         icon.classList.add('rotate');
-        // Show the disclaimer when the Contact Directory is opened
+
+        // Show the appropriate disclaimer
         if (header.innerText.includes('Contact Directory')) {
           document.getElementById('contact-directory-disclaimer').style.display = 'block';
+        }
+        if (header.innerText.includes('Surgical Operative Techniques')) {
+          if (surgicalDisclaimer) surgicalDisclaimer.style.display = 'block';
         }
       }
     }
