@@ -179,100 +179,99 @@
   <div id="results">Loading inventory...</div>
 
   <!-- JavaScript -->
-  <script>
-    const firebaseUrl = "https://orthopod-f8a90-default-rtdb.firebaseio.com/instruments.json";
-";
-let inventory = [];
+<script>
+  const firebaseUrl = "https://orthopod-f8a90-default-rtdb.firebaseio.com/.json"; // Notice: `.json` at root
+  let inventory = [];
 
+  const searchBar = document.getElementById('searchBar');
+  const searchBtn = document.getElementById('searchBtn');
+  const resultsDiv = document.getElementById('results');
+  let activeField = null;
 
-    const searchBar = document.getElementById('searchBar');
-    const searchBtn = document.getElementById('searchBtn');
-    const resultsDiv = document.getElementById('results');
-    let activeField = null;
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeField = btn.dataset.field;
+      searchInventory();
+    });
+  });
 
-    document.querySelectorAll('.filter-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        activeField = btn.dataset.field;
-        searchInventory();
-      });
+  function searchInventory() {
+    const query = searchBar.value.toLowerCase().trim();
+    resultsDiv.innerHTML = '';
+    if (query === '') return;
+
+    const filtered = inventory.filter(item => {
+      const searchValue = query.toLowerCase();
+      if (activeField && item[activeField]) {
+        return (item[activeField] || '').toLowerCase().includes(searchValue);
+      } else {
+        const haystack = [
+          (item.Item || '').toLowerCase(),
+          (item.ItemID || '').toLowerCase(),
+          (item.InclusionProductCategory || '').toLowerCase(),
+          (item.StockID || '').toLowerCase()
+        ];
+        return haystack.some(field => field.includes(searchValue));
+      }
     });
 
-    function searchInventory() {
-      const query = searchBar.value.toLowerCase().trim();
-      resultsDiv.innerHTML = '';
-      if (query === '') return;
+    renderResults(filtered, query);
+  }
 
-      const filtered = inventory.filter(item => {
-        const searchValue = query.toLowerCase();
-        if (activeField && item[activeField]) {
-          return (item[activeField] || '').toLowerCase().includes(searchValue);
-        } else {
-          const haystack = [
-            (item.Item || '').toLowerCase(),
-            (item.ItemID || '').toLowerCase(),
-            (item.InclusionProductCategory || '').toLowerCase(),
-            (item.StockID || '').toLowerCase()
-          ];
-          return haystack.some(field => field.includes(searchValue));
-        }
-      });
-
-      renderResults(filtered, query);
+  function renderResults(items, query) {
+    if (items.length === 0) {
+      resultsDiv.innerHTML = 'No matching instruments found.';
+      return;
     }
 
-    function renderResults(items, query) {
-      if (items.length === 0) {
-        resultsDiv.innerHTML = 'No matching instruments found.';
-        return;
+    items.forEach(item => {
+      const div = document.createElement('div');
+      div.className = 'result';
+      let html = '';
+
+      html += `<strong>Item:</strong> ${item.Item} <br />
+               <strong>Item ID:</strong> ${item.ItemID || item.ItemReference || ''} <br />
+               <strong>Inclusion/Product Category:</strong> ${item.InclusionProductCategory || ''} <br />
+               <strong>Stock ID:</strong> ${item.StockID || ''} <br />
+               <strong>Stock Level:</strong> ${item.StockLevel || ''} <br />
+               <strong>Total Count:</strong> ${item.TotalCount || ''} <br />
+               <strong>Storage Location:</strong> ${item.StorageLocation || ''} <br />`;
+
+      if (item.InclusionProductCategory) {
+        html += `<a href="instrument-checklist.html?category=${encodeURIComponent(item.InclusionProductCategory)}" class="instrument-link">Instrument Checklist</a>`;
       }
 
-      items.forEach(item => {
-        const div = document.createElement('div');
-        div.className = 'result';
-        let html = '';
+      div.innerHTML = html;
+      resultsDiv.appendChild(div);
+    });
+  }
 
-        html += `<strong>Item:</strong> ${item.Item} <br />
-                 <strong>Item ID:</strong> ${item.ItemReference} <br />
-                 <strong>Inclusion/Product Category:</strong> ${item.InclusionProductCategory} <br />
-                 <strong>Stock ID:</strong> ${item.StockID} <br />
-                 <strong>Stock Level:</strong> ${item.StockLevel} <br />
-                 <strong>Total Count:</strong> ${item.TotalCount} <br />
-                 <strong>Storage Location:</strong> ${item.StorageLocation} <br />`;
-
-        if (item.InclusionProductCategory) {
-          html += `<a href="instrument-checklist.html?category=${encodeURIComponent(item.InclusionProductCategory)}" class="instrument-link">Instrument Checklist</a>`;
-        }
-
-        div.innerHTML = html;
-        resultsDiv.appendChild(div);
+  function fetchInventory() {
+    fetch(firebaseUrl)
+      .then(response => response.json())
+      .then(data => {
+        inventory = Object.values(data.instruments || {}); // ✅ Corrected path
+        resultsDiv.innerHTML = '';
+      })
+      .catch(error => {
+        resultsDiv.innerHTML = 'Error loading inventory.';
+        console.error("Firebase fetch error:", error);
       });
-    }
+  }
 
-    function fetchInventory() {
-      fetch(firebaseUrl)
-        .then(response => response.json())
-        .then(data => {
-          inventory = Object.values(data || {});
-          resultsDiv.innerHTML = '';
-        })
-        .catch(error => {
-          resultsDiv.innerHTML = 'Error loading inventory.';
-          console.error("Firebase fetch error:", error);
-        });
-    }
+  searchBtn.addEventListener('click', searchInventory);
+  searchBar.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') searchInventory();
+  });
+  searchBar.addEventListener('input', function() {
+    if (this.value.trim() === '') resultsDiv.innerHTML = '';
+  });
 
-    searchBtn.addEventListener('click', searchInventory);
-    searchBar.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') searchInventory();
-    });
-    searchBar.addEventListener('input', function() {
-      if (this.value.trim() === '') resultsDiv.innerHTML = '';
-    });
+  fetchInventory();
+</script>
 
-    fetchInventory();
-  </script>
 
 </body>
 </html>
