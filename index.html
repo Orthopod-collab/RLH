@@ -11,7 +11,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Product+Sans&display=swap" rel="stylesheet">
 
   <style>
-    /* Import Aptos font */
     @font-face {
       font-family: 'Aptos';
       src: url('https://fonts.cdnfonts.com/s/106113/Aptos.woff') format('woff');
@@ -26,7 +25,6 @@
       text-align: center;
     }
 
-    /* Useful Links Button (Top Left) */
     .top-links {
       position: absolute;
       top: 1rem;
@@ -42,15 +40,14 @@
       font-size: 0.95rem;
       padding: 0.7rem 1.2rem;
       border-radius: 20px;
-      transition: background-color 0.3s, color 0.3s;
       background-color: #e8e8e8;
+      transition: background-color 0.3s, color 0.3s;
     }
 
     .top-links a:hover {
       background-color: #dcdcdc;
     }
 
-    /* Title Styling - OrthoPod in Google colors */
     h2 {
       font-family: 'Product Sans', sans-serif;
       font-size: 3rem;
@@ -61,12 +58,11 @@
       line-height: 1.1;
     }
 
-    /* Search Bar Container */
     .search-container {
       position: relative;
       display: inline-block;
-      width: 50%;
-      max-width: 500px;
+      width: 75%;
+      max-width: 750px;
     }
 
     input[type="text"] {
@@ -76,6 +72,10 @@
       border: 1px solid #dcdcdc;
       width: 100%;
       box-sizing: border-box;
+    }
+
+    input::placeholder {
+      font-size: 0.95rem;
     }
 
     #searchBtn {
@@ -93,7 +93,6 @@
       fill: #777;
     }
 
-    /* Filter Buttons */
     .filter-btn {
       background-color: #e8e8e8;
       border: none;
@@ -136,16 +135,20 @@
     .instrument-link:hover {
       text-decoration: underline;
     }
+
+    mark {
+      background-color: #ffe678;
+      padding: 0 2px;
+      border-radius: 2px;
+    }
   </style>
 </head>
 <body>
 
-  <!-- Top Left Link -->
   <div class="top-links">
     <a href="links.html">Useful Links</a>
   </div>
 
-  <!-- Title -->
   <h2>
     <span style="color:#DB4437;">O</span>
     <span style="color:#0F9D58;">r</span>
@@ -157,9 +160,8 @@
     <span style="color:#F4B400;">d</span>
   </h2>
 
-  <!-- Search Bar -->
   <div class="search-container">
-    <input type="text" id="searchBar" placeholder="Search Instrument..." />
+    <input type="text" id="searchBar" placeholder="Search for Instrument or Consumable e.g. Mallet" />
     <button id="searchBtn">
       <svg xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 24 24">
         <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l4.25 4.25 1.5-1.5L15.5 14zm-6 0C8.01 14 6 11.99 6 9.5S8.01 5 10.5 5 15 7.01 15 9.5 12.99 14 10.5 14z"/>
@@ -167,57 +169,45 @@
     </button>
   </div>
 
-  <!-- Filter Buttons -->
   <div id="filters" style="margin-top: 1rem; margin-bottom: 2rem;">
-    <button class="filter-btn" data-field="Item">Search by Item</button>
-    <button class="filter-btn" data-field="ItemReference">Search by Item Reference</button>
-    <button class="filter-btn" data-field="TrayInclusionProductCategory">Search by Tray Inclusion / Product Category</button>
-    <button class="filter-btn" data-field="TrayReference">Search by Tray Reference</button>
+    <button class="filter-btn active" data-field="Item">Search by Item</button>
+    <button class="filter-btn" data-field="ItemReference">Search by Item ID</button>
+    <button class="filter-btn" data-field="TrayInclusionProductCategory">Search by Inclusion / Category</button>
+    <button class="filter-btn" data-field="TrayReference">Search by Stock ID</button>
   </div>
 
-  <!-- Results -->
   <div id="results">Loading inventory...</div>
 
-  <!-- JavaScript -->
   <script>
     const firebaseUrl = "https://ortho-61f64-default-rtdb.firebaseio.com/instruments.json";
     let inventory = [];
+    let activeField = "Item";
 
     const searchBar = document.getElementById('searchBar');
     const searchBtn = document.getElementById('searchBtn');
     const resultsDiv = document.getElementById('results');
-    let activeField = null;
+
+    const placeholderMap = {
+      Item: "Search for Instrument or Consumable e.g. Mallet",
+      ItemReference: "Enter Product or Item (Synergy) Reference e.g. XU2129",
+      TrayInclusionProductCategory: "Enter the Instrument Tray name e.g. Mini Driver Tray",
+      TrayReference: "Enter the Reference no. for the Tray or Single Item"
+    };
 
     document.querySelectorAll('.filter-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         activeField = btn.dataset.field;
+        searchBar.placeholder = placeholderMap[activeField] || '';
         searchInventory();
       });
     });
 
-    function searchInventory() {
-      const query = searchBar.value.toLowerCase().trim();
-      resultsDiv.innerHTML = '';
-      if (query === '') return;
-
-      const filtered = inventory.filter(item => {
-        const searchValue = query.toLowerCase();
-        if (activeField && item[activeField]) {
-          return (item[activeField] || '').toLowerCase().includes(searchValue);
-        } else {
-          const haystack = [
-            (item.Item || '').toLowerCase(),
-            (item.ItemReference || '').toLowerCase(),
-            (item.TrayInclusionProductCategory || '').toLowerCase(),
-            (item.TrayReference || '').toLowerCase()
-          ];
-          return haystack.some(field => field.includes(searchValue));
-        }
-      });
-
-      renderResults(filtered, query);
+    function highlightMatch(text, query) {
+      if (!query) return text;
+      const regex = new RegExp(`(${query})`, 'gi');
+      return text.replace(regex, '<mark>$1</mark>');
     }
 
     function renderResults(items, query) {
@@ -226,26 +216,53 @@
         return;
       }
 
+      resultsDiv.innerHTML = '';
       items.forEach(item => {
         const div = document.createElement('div');
         div.className = 'result';
-        let html = '';
 
-        html += `<strong>Item:</strong> ${item.Item} <br />
-                 <strong>Item Reference:</strong> ${item.ItemReference} <br />
-                 <strong>Tray Inclusion/Product Category:</strong> ${item.TrayInclusionProductCategory} <br />
-                 <strong>Tray Reference:</strong> ${item.TrayReference} <br />
-                 <strong>Stock Level:</strong> ${item.StockLevel} <br />
-                 <strong>Total Count:</strong> ${item.TotalCount} <br />
-                 <strong>Storage Location:</strong> ${item.StorageLocation} <br />`;
+        const fields = {
+          "Item": item.Item || '',
+          "ItemReference": item.ItemReference || '',
+          "TrayInclusionProductCategory": item.TrayInclusionProductCategory || '',
+          "TrayReference": item.TrayReference || '',
+          "StockLevel": item.StockLevel || '',
+          "TotalCount": item.TotalCount || '',
+          "StorageLocation": item.StorageLocation || ''
+        };
 
-        if (item.TrayInclusionProductCategory) {
-          html += `<a href="instrument-checklist.html?category=${encodeURIComponent(item.TrayInclusionProductCategory)}" class="instrument-link">Instrument Checklist</a>`;
+        let html = `
+          <strong>Item:</strong> ${highlightMatch(fields.Item, query)} <br />
+          <strong>Item Reference:</strong> ${highlightMatch(fields.ItemReference, query)} <br />
+          <strong>Tray Inclusion/Product Category:</strong> ${highlightMatch(fields.TrayInclusionProductCategory, query)} <br />
+          <strong>Tray Reference:</strong> ${highlightMatch(fields.TrayReference, query)} <br />
+          <strong>Stock Level:</strong> ${fields.StockLevel} <br />
+          <strong>Total Count:</strong> ${fields.TotalCount} <br />
+          <strong>Storage Location:</strong> ${fields.StorageLocation} <br />
+        `;
+
+        if (fields.TrayInclusionProductCategory) {
+          html += `<a href="instrument-checklist.html?category=${encodeURIComponent(fields.TrayInclusionProductCategory)}" class="instrument-link">Instrument Checklist</a>`;
         }
 
         div.innerHTML = html;
         resultsDiv.appendChild(div);
       });
+    }
+
+    function searchInventory() {
+      const query = searchBar.value.toLowerCase().trim();
+      if (!query) {
+        resultsDiv.innerHTML = '';
+        return;
+      }
+
+      const filtered = inventory.filter(item => {
+        const value = (item[activeField] || '').toLowerCase();
+        return value.includes(query);
+      });
+
+      renderResults(filtered, query);
     }
 
     function fetchInventory() {
@@ -262,15 +279,14 @@
     }
 
     searchBtn.addEventListener('click', searchInventory);
-    searchBar.addEventListener('keydown', function(e) {
+    searchBar.addEventListener('keydown', e => {
       if (e.key === 'Enter') searchInventory();
     });
-    searchBar.addEventListener('input', function() {
-      if (this.value.trim() === '') resultsDiv.innerHTML = '';
+    searchBar.addEventListener('input', () => {
+      if (searchBar.value.trim() === '') resultsDiv.innerHTML = '';
     });
 
     fetchInventory();
   </script>
-
 </body>
 </html>
