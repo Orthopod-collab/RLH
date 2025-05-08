@@ -204,50 +204,50 @@
         </div>
       </div>
       <div class="section-content">
-        <a href="https://orthopod-collab.github.io/Implant-Management/" target="_blank">Go to Implant Catalogue</a>
+        <a href="https://orthopod-collab.github.io/Implant-Management/" target="_blank">View Implant Catalogue</a>
       </div>
     </div>
 
    <!-- Operating Table Section -->
-    <div class="section">
-      <div class="section-header" onclick="toggleSection(this)">
-        <div>Orthopaedic Operating Tables</div>
-        <div class="circle-icon red">
-          <i class="fas fa-chevron-right chevron"></i>
-        </div>
-      </div>
-      <div class="section-content">
-        <p><strong>1. Eschmann 50+ 300kg</strong></p>
-        <p>Information will be added soon.</p>
-
-        <p><strong>2. Eschmann 20+ and 30+ 450kg</strong></p>
-        <p>Information will be added soon.</p>
-
-        <p><strong>3. Marquet Orthstar 180kg</strong></p>
-        <p>Information will be added soon.</p>
-
-        <p><strong>4. Marquet Alphastar (plus) 360kg</strong></p>
-        <p>Information will be added soon.</p>
-
-        <p><strong>5. Marquet Alphastar 225kg</strong></p>
-        <p>Information will be added soon.</p>
-
-        <p><strong>6. Allen table 272kg</strong></p>
-        <p>Information will be added soon.</p>
-
-        <p><strong>7. Angio Table 200kg</strong></p>
-        <p>Information will be added soon.</p>
-
-        <p><strong>8. Pelvic Table 500LBS (226kg)</strong></p>
-        <p>Information will be added soon.</p>
-
-        <p><strong>9. Traction table 180kg</strong></p>
-        <p>Information will be added soon.</p>
-
-        <p><strong>10. Hana Table 450 LBS (204KG)</strong></p>
-        <p>Information will be added soon.</p>
-      </div>
+<div class="section">
+  <div class="section-header" onclick="toggleSection(this)">
+    <div>Orthopaedic Operating Tables</div>
+    <div class="circle-icon red">
+      <i class="fas fa-chevron-right chevron"></i>
     </div>
+  </div>
+  <div class="section-content">
+    <p><strong>1. Eschmann 50+ 300kg</strong></p>
+    <p>Information will be added soon.</p>
+
+    <p><strong>2. Eschmann 20+ and 30+ 450kg</strong></p>
+    <p>Information will be added soon.</p>
+
+    <p><strong>3. Marquet Orthstar 180kg</strong></p>
+    <p>Information will be added soon.</p>
+
+    <p><strong>4. Marquet Alphastar (plus) 360kg</strong></p>
+    <p>Information will be added soon.</p>
+
+    <p><strong>5. Marquet Alphastar 225kg</strong></p>
+    <p>Information will be added soon.</p>
+
+    <p><strong>6. Allen table 272kg</strong></p>
+    <p>Information will be added soon.</p>
+
+    <p><strong>7. Angio Table 200kg</strong></p>
+    <p>Information will be added soon.</p>
+
+    <p><strong>8. Pelvic Table 500LBS (226kg)</strong></p>
+    <p>Information will be added soon.</p>
+
+    <p><strong>9. Traction table 180kg</strong></p>
+    <p>Information will be added soon.</p>
+
+    <p><strong>10. Hana Table 450 LBS (204KG)</strong></p>
+    <p>Information will be added soon.</p>
+  </div>
+</div>
 
     <!-- Contact Directory (Dynamically loaded from Firebase) -->
     <div class="section">
@@ -287,8 +287,6 @@
 
       // Hide both disclaimers initially
       document.getElementById('contact-directory-disclaimer').style.display = 'none';
-      const surgicalDisclaimer = document.getElementById('surgical-disclaimer');
-      if (surgicalDisclaimer) surgicalDisclaimer.style.display = 'none';
 
       // Toggle the current section
       if (content.style.display === "block") {
@@ -297,14 +295,6 @@
       } else {
         content.style.display = "block";
         icon.classList.add('rotate');
-
-        // Show the appropriate disclaimer
-        if (header.innerText.includes('Contact Directory')) {
-          document.getElementById('contact-directory-disclaimer').style.display = 'block';
-        }
-        if (header.innerText.includes('Surgical Operative Techniques')) {
-          if (surgicalDisclaimer) surgicalDisclaimer.style.display = 'block';
-        }
       }
     }
 
@@ -331,5 +321,51 @@
         for (const key in data) {
           const { name, company, specification, email, phone } = data[key];
           html += `
+            <div class="contact-card" data-name="${name.toLowerCase()}" data-company="${company.toLowerCase()}" data-specification="${specification.toLowerCase()}">
+              <h3>${name}</h3>
+              <p><span class="label">Company:</span> ${company}</p>
+              <p><span class="label">Specification:</span> ${specification}</p>
+              <p><span class="label">Email:</span> <a href="mailto:${email}">${email}</a></p>
+              <p><span class="label">Phone:</span> ${phone}</p>
+            </div>
+          `;
+        }
 
-            <div class="contact-card" data-name="${name.to
+        container.innerHTML = html;
+      });
+    }
+
+    // Filter contacts based on search input
+    function filterContacts() {
+      const searchValue = document.querySelector("#search-bar").value.toLowerCase();
+      const contactCards = document.querySelectorAll(".contact-card");
+
+      let foundContact = false;
+
+      contactCards.forEach(card => {
+        const name = card.getAttribute("data-name");
+        const company = card.getAttribute("data-company");
+        const specification = card.getAttribute("data-specification");
+
+        if (name.includes(searchValue) || company.includes(searchValue) || specification.includes(searchValue)) {
+          card.style.display = "block";
+          card.classList.add("active");
+          foundContact = true;
+        } else {
+          card.style.display = "none";
+          card.classList.remove("active");
+        }
+      });
+
+      if (!foundContact) {
+        document.querySelector("#contacts-list").innerHTML = "<p>No contacts found.</p>";
+      }
+    }
+
+    // Load the contacts when the page is ready
+    window.onload = function() {
+      loadContacts();
+    }
+  </script>
+</body>
+</html>
