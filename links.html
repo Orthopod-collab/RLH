@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Useful Links - OrthoPod</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #f8f8f8;
+    }
+
+    .container {
+      max-width: 480px;
+      margin: auto;
+      background: #fff;
+      min-height: 100vh;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    header {
+      background: #ffffff;
+      padding: 1rem;
+      text-align: center;
+      font-size: 1.4rem;
+      font-weight: 600;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .section {
+      border-bottom: 1px solid #eee;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 1.05rem;
+    }
+
+    .circle-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 14px;
+      margin-left: 1rem;
+    }
+
+    .orange { background-color: #f4a261; }
+    .blue { background-color: #457b9d; }
+    .green { background-color: #2a9d8f; }
+    .red { background-color: #e76f51; }
+    .teal { background-color: #00b4d8; }
+
+    .section-content {
+      display: none;
+      padding: 0 1.2rem 1rem;
+      animation: expand 0.3s ease;
+    }
+
+    .section-content a {
+      display: block;
+      padding: 0.6rem 0;
+      text-decoration: none;
+      color: #333;
+      font-size: 0.96rem;
+    }
+
+    .section-content a:hover {
+      text-decoration: underline;
+    }
+
+    .chip {
+      display: inline-block;
+      padding: 0.3rem 0.6rem;
+      background: #ccc;
+      color: #333;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      margin-top: 0.4rem;
+    }
+
+    /* Business Card Styles */
+    .contact-card {
+      background-color: #f9f9f9;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 10px;
+      flex-direction: column;
+      gap: 8px;
+      display: none; /* Hide contact details initially */
+    }
+
+    .contact-card h3 {
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .contact-card p {
+      margin: 0;
+      font-size: 1rem;
+      color: #555;
+    }
+
+    .contact-card .label {
+      font-weight: 600;
+      color: #333;
+    }
+
+    @keyframes expand {
+      from { opacity: 0; transform: scaleY(0.95); }
+      to { opacity: 1; transform: scaleY(1); }
+    }
+
+    .rotate {
+      transform: rotate(90deg);
+      transition: transform 0.2s ease;
+    }
+
+    .chevron {
+      transition: transform 0.2s ease;
+    }
+
+    footer {
+      font-size: 0.8rem;
+      color: #666;
+      text-align: center;
+      background: #fafafa;
+      border-top: 1px solid #eee;
+      padding: 1rem;
+    }
+
+    #search-bar {
+      width: 100%;
+      padding: 0.8rem;
+      margin-bottom: 1rem;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+    }
+
+    /* Show active content */
+    .active {
+      display: block !important;
+    }
+
+    /* Disclaimer Styles */
+    .disclaimer {
+      background-color: #f4f4f4;
+      padding: 1rem;
+      border: 1px solid #ddd;
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>Useful Links</header>
+
+    <!-- Procedure Reference Cards -->
+    <div class="section">
+      <div class="section-header" onclick="toggleSection(this)">
+        <div>Procedure Reference Cards</div>
+        <div class="circle-icon orange">
+          <i class="fas fa-chevron-right chevron"></i>
+        </div>
+      </div>
+      <div class="section-content">
+        <a href="#">Closed Reduction & Casting</a>
+        <a href="#">External Fixation</a>
+        <a href="#">IM Nailing - Tibia</a>
+        <a href="#">IM Nailing - Femur</a>
+        <a href="#">ORIF - Wrist</a>
+        <a href="#">ORIF - Ankle</a>
+        <a href="#">Pelvic Fixation</a>
+      </div>
+    </div>
+    
+    <!-- Implant Catalogue -->
+    <div class="section">
+      <div class="section-header" onclick="toggleSection(this)">
+        <div>Implant Catalogue</div>
+        <div class="circle-icon green">
+          <i class="fas fa-chevron-right chevron"></i>
+        </div>
+      </div>
+      <div class="section-content">
+        <a href="https://orthopod-collab.github.io/Implant-Management/" target="_blank">View Implant Catalogue</a>
+      </div>
+    </div>
+
+   <!-- Operating Table Section -->
+<div class="section">
+  <div class="section-header" onclick="toggleSection(this)">
+    <div>Orthopaedic Operating Tables</div>
+    <div class="circle-icon red">
+      <i class="fas fa-chevron-right chevron"></i>
+    </div>
+  </div>
+  <div class="section-content">
+    <p><strong>1. Eschmann 50+ 300kg</strong></p>
+    <p>Information will be added soon.</p>
+
+    <p><strong>2. Eschmann 20+ and 30+ 450kg</strong></p>
+    <p>Information will be added soon.</p>
+
+    <p><strong>3. Marquet Orthstar 180kg</strong></p>
+    <p>Information will be added soon.</p>
+
+    <p><strong>4. Marquet Alphastar (plus) 360kg</strong></p>
+    <p>Information will be added soon.</p>
+
+    <p><strong>5. Marquet Alphastar 225kg</strong></p>
+    <p>Information will be added soon.</p>
+
+    <p><strong>6. Allen table 272kg</strong></p>
+    <p>Information will be added soon.</p>
+
+    <p><strong>7. Angio Table 200kg</strong></p>
+    <p>Information will be added soon.</p>
+
+    <p><strong>8. Pelvic Table 500LBS (226kg)</strong></p>
+    <p>Information will be added soon.</p>
+
+    <p><strong>9. Traction table 180kg</strong></p>
+    <p>Information will be added soon.</p>
+
+    <p><strong>10. Hana Table 450 LBS (204KG)</strong></p>
+    <p>Information will be added soon.</p>
+  </div>
+</div>
+
+    <!-- Contact Directory (Dynamically loaded from Firebase) -->
+    <div class="section">
+      <div class="section-header" onclick="toggleSection(this)">
+        <div>Contact Directory</div>
+        <div class="circle-icon teal">
+          <i class="fas fa-chevron-right chevron"></i>
+        </div>
+      </div>
+      <div class="section-content" id="contact-search-section">
+        <input type="text" id="search-bar" placeholder="Search by name, company, or specification..." onkeyup="filterContacts()">
+        <div id="contacts-list">
+          <!-- Contacts will be dynamically loaded here -->
+        </div>
+
+        <!-- Disclaimer for Contact Directory -->
+        <div class="disclaimer" id="contact-directory-disclaimer" style="display: none;">
+          <strong>Disclaimer:</strong> The contact information listed here is provided for internal purposes and is subject to change. OrthoPod does not guarantee the accuracy or availability of the contacts listed.
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    function toggleSection(header) {
+      const content = header.nextElementSibling;
+      const icon = header.querySelector('.chevron');
+      
+      // Close all other sections
+      const allSections = document.querySelectorAll('.section .section-content');
+      allSections.forEach(section => {
+        if (section !== content) {
+          section.style.display = "none";
+        }
+      });
+
+      // Hide both disclaimers initially
+      document.getElementById('contact-directory-disclaimer').style.display = 'none';
+
+      // Toggle the current section
+      if (content.style.display === "block") {
+        content.style.display = "none";
+        icon.classList.remove('rotate');
+      } else {
+        content.style.display = "block";
+        icon.classList.add('rotate');
+      }
+    }
+
+    // Firebase Initialization
+    const firebaseConfig = {
+      databaseURL: "https://contact-directory-225b7-default-rtdb.firebaseio.com/"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    function loadContacts() {
+      const ref = db.ref("contacts");
+      const container = document.querySelector("#contacts-list");
+
+      ref.once("value", (snapshot) => {
+        const data = snapshot.val();
+        if (!data) {
+          container.innerHTML = "<p>No contact data available.</p>";
+          return;
+        }
+
+        let html = "";
+        for (const key in data) {
+          const { name, company, specification, email, phone } = data[key];
+          html += `
+            <div class="contact-card" data-name="${name.toLowerCase()}" data-company="${company.toLowerCase()}" data-specification="${specification.toLowerCase()}">
+              <h3>${name}</h3>
+              <p><span class="label">Company:</span> ${company}</p>
+              <p><span class="label">Specification:</span> ${specification}</p>
+              <p><span class="label">Email:</span> <a href="mailto:${email}">${email}</a></p>
+              <p><span class="label">Phone:</span> ${phone}</p>
+            </div>
+          `;
+        }
+
+        container.innerHTML = html;
+      });
+    }
+
+    // Filter contacts based on search input
+    function filterContacts() {
+      const searchValue = document.querySelector("#search-bar").value.toLowerCase();
+      const contactCards = document.querySelectorAll(".contact-card");
+
+      let foundContact = false;
+
+      contactCards.forEach(card => {
+        const name = card.getAttribute("data-name");
+        const company = card.getAttribute("data-company");
+        const specification = card.getAttribute("data-specification");
+
+        if (name.includes(searchValue) || company.includes(searchValue) || specification.includes(searchValue)) {
+          card.style.display = "block";
+          card.classList.add("active");
+          foundContact = true;
+        } else {
+          card.style.display = "none";
+          card.classList.remove("active");
+        }
+      });
+
+      if (!foundContact) {
+        document.querySelector("#contacts-list").innerHTML = "<p>No contacts found.</p>";
+      }
+    }
+
+    // Load the contacts when the page is ready
+    window.onload = function() {
+      loadContacts();
+    }
+  </script>
+</body>
+</html>
