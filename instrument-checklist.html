@@ -3,173 +3,136 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Instrument Checklist</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <title>Category Items</title>
   <style>
+    /* Global styles */
     body {
-      font-family: 'Poppins', Arial, sans-serif;
-      padding: 2rem;
+      font-family: 'Aptos', sans-serif;
+      padding: 1.8rem;
       background: #f2f2f2;
       text-align: center;
     }
 
+    /* Modern Title Style */
     h2 {
-      font-family: 'Poppins', sans-serif;
-      font-size: 2.8rem;
+      font-family: 'Product Sans', sans-serif;
+      font-size: 3rem;
+      font-weight: 700;
+      margin-top: 4rem;
       margin-bottom: 20px;
+      letter-spacing: -1px;
+      line-height: 1.1;
+      color: navy; /* Navy blue title */
+      text-transform: uppercase; /* Added uppercase style for a modern feel */
     }
 
-    h3 {
-      font-size: 1.8rem;
-      margin-top: 1rem;
-      color: #4285f4;
-    }
-
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin: 10px 0;
-    }
-
+    /* Table Styles */
     table {
       width: 80%;
+      margin: 2rem auto;
       border-collapse: collapse;
-      margin: 0 auto;
+      background: white;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
     }
-
     th, td {
       padding: 12px;
+      border: 1px solid #ddd;
       text-align: left;
-      border-bottom: 1px solid #ddd;
     }
-
     th {
-      font-weight: bold;
       background-color: #f9f9f9;
     }
 
-    td {
-      background-color: white;
-    }
-
-    tr:last-child td {
-      border-bottom: none;
-    }
-
-    #backBtn {
-      margin: 20px;
-      padding: 10px 20px;
-      background-color: #4285f4;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 1rem;
-    }
-
-    #backBtn:hover {
-      background-color: #357ae8;
-    }
-
-    .instrument-link {
-      font-weight: bold;
+    /* Link Styles */
+    a {
       text-decoration: none;
-      color: #4285f4;
+      color: blue; /* Set the link color to blue */
+      font-weight: bold; /* Make the link text bold */
     }
 
-    .instrument-link:hover {
-      text-decoration: underline;
+    a:hover {
+      color: darkblue; /* Dark blue on hover */
+      text-decoration: underline; /* Underline on hover for better interactivity */
     }
   </style>
 </head>
 <body>
 
-  <h2 id="categoryTitle">Instrument Checklist</h2>
+  <h2><span id="categoryName">Loading...</span></h2>
+  <div><strong>Total Count: </strong><span id="totalCount">Loading...</span></div>
 
-  <div class="header">
-    <span id="totalCount" style="font-size: 1.5rem;">Total Item Count: Loading...</span>
-  </div>
-
-  <div id="results">Loading checklist...</div>
-
-  <button id="backBtn" onclick="window.location.href = 'index.html';">Back to Main Page</button>
+  <table>
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th>Item ID</th>
+        <th>Item Qty</th>
+      </tr>
+    </thead>
+    <tbody id="categoryItems">
+      <!-- Items will be listed here -->
+    </tbody>
+  </table>
 
   <script>
-    const firebaseUrl = "https://ortho-61f64-default-rtdb.firebaseio.com/instruments.json";
+    const firebaseUrl = "https://instruments-726d0-default-rtdb.firebaseio.com/inventory.json";
+    const categoryName = new URLSearchParams(window.location.search).get('category');
+    const categoryTitle = document.getElementById("categoryName");
+    const totalCountElement = document.getElementById("totalCount");
+    const categoryItemsElement = document.getElementById("categoryItems");
+
     let inventory = [];
-    const resultsDiv = document.getElementById('results');
-    const categoryTitle = document.getElementById('categoryTitle');
-    const totalCountDiv = document.getElementById('totalCount');
 
-    // Get the category from the URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const category = urlParams.get('category');
-
-    // Fetch inventory and filter by the TrayInclusionProductCategory
-    function fetchInventory() {
-      fetch(firebaseUrl)
-        .then(response => response.json())
-        .then(data => {
-          inventory = Object.values(data || {});
-          filterByCategory(category);
-        })
-        .catch(error => {
-          resultsDiv.innerHTML = 'Error loading inventory.';
-          console.error("Firebase fetch error:", error);
-        });
-    }
-
-    // Filter items by TrayInclusionProductCategory
-    function filterByCategory(category) {
-      if (!category) {
-        resultsDiv.innerHTML = 'No category selected.';
-        return;
-      }
-
-      // Display the selected category name as the header
-      categoryTitle.innerHTML = `Instrument Checklist: ${category}`;
-
-      const filteredItems = inventory.filter(item => item.InclusionCategory === category);
-
-      if (filteredItems.length === 0) {
-        resultsDiv.innerHTML = 'No items found in this category.';
-        return;
-      }
-
-      // Calculate total count for the items in this category
-      const totalItemCount = filteredItems.reduce((acc, item) => acc + (item.ItemQuantity || 0), 0);
-      totalCountDiv.innerHTML = `Total Item Count: ${totalItemCount}`;
-
-      renderResults(filteredItems);
-    }
-
-    function renderResults(items) {
-      let html = `
-        <table>
-          <tr>
-            <th>Instrument</th>
-            <th>Item ID</th>
-            <th>Item Qty</th>
-          </tr>
-      `;
-
-      items.forEach(item => {
-        html += `
-          <tr>
-            <td><a href="#" class="instrument-link">${item.Item || "Unnamed"}</a></td>
-            <td>${item.ItemID || "N/A"}</td>
-            <td>${item.ItemQuantity || 0}</td>
-          </tr>
-        `;
+    // Fetch inventory data from Firebase
+    fetch(firebaseUrl)
+      .then(res => res.json())
+      .then(data => {
+        inventory = Object.values(data || {});
+        filterCategoryItems(categoryName);
+      })
+      .catch(err => {
+        categoryItemsElement.innerHTML = "<tr><td colspan='3'>Failed to load inventory data.</td></tr>";
+        console.error(err);
       });
 
-      html += `</table>`;
-      resultsDiv.innerHTML = html;
-    }
+    // Filter and display items from the selected category
+    function filterCategoryItems(category) {
+      if (!category) {
+        categoryTitle.innerHTML = "Category not found";
+        categoryItemsElement.innerHTML = "<tr><td colspan='3'>No items found.</td></tr>";
+        return;
+      }
 
-    // Load inventory data when the page is loaded
-    fetchInventory();
+      categoryTitle.innerHTML = category;
+
+      const filteredItems = inventory.filter(item =>
+        item['Inclusion and Category'] === category
+      );
+
+      if (filteredItems.length === 0) {
+        categoryItemsElement.innerHTML = "<tr><td colspan='3'>No items found in this category.</td></tr>";
+        return;
+      }
+
+      // Calculate the total count
+      const totalCount = filteredItems.reduce((total, item) => total + (item["Item Qty"] || 0), 0);
+      totalCountElement.innerHTML = totalCount;
+
+      // Display filtered items in a table with links
+      filteredItems.forEach(item => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td><a href="#" id="item-link-${item['Item ID']}">${item["Item"] || 'N/A'}</a></td>
+          <td>${item["Item ID"] || 'N/A'}</td>
+          <td>${item["Item Qty"] || 'N/A'}</td>
+        `;
+        categoryItemsElement.appendChild(row);
+
+        // You can add the link logic here later, for example:
+        const itemLink = document.getElementById(`item-link-${item['Item ID']}`);
+        itemLink.href = `#`;  // Replace with the actual link
+      });
+    }
   </script>
 
 </body>
