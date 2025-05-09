@@ -211,12 +211,12 @@
         return;
       }
 
-      // Display the filtered results
+      // Display the filtered results with hyperlinks for "Inclusion and Category"
       filtered.forEach(item => {
         const div = document.createElement("div");
         div.className = "result";
         div.innerHTML = `
-          <div><strong>Inclusion and Category:</strong> ${item["Inclusion and Category"] || 'N/A'}</div>
+          <div><strong>Inclusion and Category:</strong> <a href="checklist.html?category=${encodeURIComponent(item['Inclusion and Category'] || 'N/A')}" target="_blank">${item["Inclusion and Category"] || 'N/A'}</a></div>
           <div><strong>Item:</strong> ${item["Item"] || 'N/A'}</div>
           <div><strong>Item ID:</strong> ${item["Item ID"] || 'N/A'}</div>
           <div><strong>Item Qty:</strong> ${item["Item Qty"] || 'N/A'}</div>
