@@ -178,7 +178,7 @@
       .then(res => res.json())
       .then(data => {
         inventory = Object.values(data || {});
-        document.getElementById("results").innerHTML = "Enter a search above.";
+        document.getElementById("results").innerHTML = "";
       })
       .catch(err => {
         document.getElementById("results").innerText = "Failed to load inventory.";
@@ -199,7 +199,11 @@
       const query = searchInput.value.trim().toLowerCase();
       resultsDiv.innerHTML = "";
 
-      if (!query) return;
+      // If the search query is empty, clear the results and return
+      if (!query) {
+        resultsDiv.innerHTML = ""; // Clear results when search bar is empty
+        return;
+      }
 
       // Filter inventory based on the selected field and search query
       const filtered = inventory.filter(item =>
@@ -211,12 +215,17 @@
         return;
       }
 
-      // Display the filtered results with hyperlinks for "Inclusion and Category"
+      // Display the filtered results
       filtered.forEach(item => {
         const div = document.createElement("div");
         div.className = "result";
         div.innerHTML = `
-          <div><strong>Inclusion and Category:</strong> <a href="checklist.html?category=${encodeURIComponent(item['Inclusion and Category'] || 'N/A')}" target="_blank">${item["Inclusion and Category"] || 'N/A'}</a></div>
+          <div>
+            <strong>Inclusion and Category:</strong>
+            <a href="instrument-checklist.html?category=${encodeURIComponent(item['Inclusion and Category'] || 'N/A')}" target="_blank">
+              ${item["Inclusion and Category"] || 'N/A'}
+            </a>
+          </div>
           <div><strong>Item:</strong> ${item["Item"] || 'N/A'}</div>
           <div><strong>Item ID:</strong> ${item["Item ID"] || 'N/A'}</div>
           <div><strong>Item Qty:</strong> ${item["Item Qty"] || 'N/A'}</div>
@@ -241,6 +250,15 @@
         searchInput.focus();
       });
     });
+
+    // Clear results when the input is emptied
+    searchInput.addEventListener("input", function () {
+      const query = searchInput.value.trim().toLowerCase();
+      if (!query) {
+        resultsDiv.innerHTML = ""; // Clear results if search bar is empty
+      }
+    });
+
   </script>
 
 </body>
