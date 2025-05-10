@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>OrthoPod</title>
 
+  <!-- Favicon and Apple Touch Icon -->
+  <link rel="icon" href="https://media-hosting.imagekit.io/f8efe6abf99d4b5a/OrthoPod.png" type="image/png" sizes="192x192">
+  <link rel="apple-touch-icon" href="https://media-hosting.imagekit.io/f8efe6abf99d4b5a/OrthoPod.png">
+
   <!-- Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;600&display=swap" rel="stylesheet">
   <link href="https://fonts.cdnfonts.com/s/106113/Aptos.woff" rel="stylesheet">
@@ -219,7 +223,7 @@
       filtered.forEach(item => {
         const div = document.createElement("div");
         div.className = "result";
-        div.innerHTML = `
+        div.innerHTML = ` 
           <div>
             <strong>Inclusion and Category:</strong>
             <a href="instrument-checklist.html?category=${encodeURIComponent(item['Inclusion and Category'] || 'N/A')}" target="_blank">
