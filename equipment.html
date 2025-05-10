@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Equipment Request Form</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      padding: 40px;
+      background-color: #f4f7fb;
+      color: #333;
+    }
+
+    .form-container {
+      max-width: 750px;
+      margin: auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      margin-top: 40px;
+    }
+
+    h2 {
+      text-align: center;
+      font-weight: 600;
+      margin-bottom: 30px;
+    }
+
+    label {
+      font-weight: 500;
+      display: block;
+      margin: 15px 0 5px;
+      color: #000;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="date"],
+    select {
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-sizing: border-box;
+      width: auto;
+      margin-bottom: 20px;
+      color: #000;
+    }
+
+    .equipment-row {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 15px;
+      align-items: center;
+    }
+
+    .equipment-row input[name="equipmentName[]"] {
+      flex: 4;
+    }
+
+    .equipment-row select[name="equipmentType[]"] {
+      flex: 1.2;
+    }
+
+    .equipment-row input[name="equipmentQty[]"] {
+      flex: 0.6;
+      max-width: 70px;
+    }
+
+    .equipment-row button {
+      background-color: #dc3545;
+      color: white;
+      border: none;
+      padding: 10px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .equipment-row button:hover {
+      background-color: #b02a37;
+    }
+
+    .add-button {
+      margin-top: 10px;
+      padding: 10px 16px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .add-button:hover {
+      background-color: #218838;
+    }
+
+    button[type="submit"] {
+      padding: 12px 16px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button[type="submit"]:hover {
+      background-color: #0056b3;
+    }
+
+    .toggle-container {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .toggle-container label {
+      margin-left: 10px;
+    }
+
+    .toggle-container input {
+      width: 40px;
+      height: 20px;
+      appearance: none;
+      background-color: #ccc;
+      border-radius: 50px;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .toggle-container input:checked {
+      background-color: #28a745;
+    }
+
+    .toggle-container input:before {
+      content: '';
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background-color: white;
+      position: absolute;
+      top: 1px;
+      left: 1px;
+      transition: 0.3s;
+    }
+
+    .toggle-container input:checked:before {
+      left: 21px;
+    }
+
+    .checkbox-container {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .checkbox-container input {
+      margin-right: 10px;
+    }
+
+    #emailFields {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header Image -->
+  <img src="https://i.imgur.com/I70Mrfz.jpeg" alt="Header Image" style="width: 45%; margin: auto; display: block;">
+
+  <div class="form-container">
+    <h2>Equipment Request Form</h2>
+    <form id="equipmentRequestForm">
+      
+      <label for="consultant">Requesting Consultant</label>
+      <input type="text" id="consultant" name="consultant" placeholder="">
+
+      <label for="plannedProcedure">Planned Procedure</label>
+      <input type="text" id="plannedProcedure" name="plannedProcedure" placeholder="">
+
+      <label for="procedureDate">Date of Procedure</label>
+      <input type="date" id="procedureDate" name="procedureDate">
+
+      <label for="equipment">Equipment(s) Needed</label>
+      <div class="equipment-row">
+        <input type="text" name="equipmentName[]" placeholder="Item Description">
+        <select name="equipmentType[]">
+          <option value="">Select Type</option>
+          <option value="Instrument Tray">Instrument Tray</option>
+          <option value="Consumable">Consumable</option>
+          <option value="Implant">Implant</option>
+        </select>
+        <input type="number" name="equipmentQty[]" placeholder="Qty" max="50">
+        <button type="button" class="remove-equipment">Remove</button>
+      </div>
+      <button type="button" class="add-button" id="addEquipment">Add Equipment</button>
+
+      <div class="toggle-container">
+        <input type="checkbox" id="clinicalSupportRepNeeded">
+        <label for="clinicalSupportRepNeeded">Clinical Support Rep Needed?</label>
+      </div>
+
+      <div id="clinicalSupportRep" style="display:none;">
+        <label for="supportRep">Clinical Support Rep</label>
+        <div class="checkbox-container">
+          <input type="checkbox" id="acumed" name="supportRep" value="Acumed"><label for="acumed">Acumed</label>
+          <input type="checkbox" id="arthrex" name="supportRep" value="Arthrex"><label for="arthrex">Arthrex</label>
+          <input type="checkbox" id="bidermann" name="supportRep" value="Bidermann"><label for="bidermann">Bidermann</label>
+          <input type="checkbox" id="depuySynthes" name="supportRep" value="DePuy Synthes"><label for="depuySynthes">DePuy Synthes</label>
+          <input type="checkbox" id="jri" name="supportRep" value="JRI"><label for="jri">JRI</label>
+          <input type="checkbox" id="lavenderMedical" name="supportRep" value="Lavender Medical"><label for="lavenderMedical">Lavender Medical</label>
+          <input type="checkbox" id="leda" name="supportRep" value="Leda"><label for="leda">Leda</label>
+          <input type="checkbox" id="paragon" name="supportRep" value="Paragon"><label for="paragon">Paragon</label>
+          <input type="checkbox" id="silony" name="supportRep" value="Silony"><label for="silony">Silony</label>
+          <input type="checkbox" id="stryker" name="supportRep" value="Stryker"><label for="stryker">Stryker</label>
+          <input type="checkbox" id="summitMedical" name="supportRep" value="Summit Medical"><label for="summitMedical">Summit Medical</label>
+          <input type="checkbox" id="zimmerBiomet" name="supportRep" value="Zimmer Biomet"><label for="zimmerBiomet">Zimmer Biomet</label>
+          <input type="checkbox" id="otherRep" name="supportRep" value="Other"><label for="otherRep">Other</label>
+        </div>
+        <div id="otherRepSpec" style="display:none;">
+          <label for="otherRepInput">Please specify</label>
+          <input type="text" id="otherRepInput" name="otherRepInput" placeholder="Please specify">
+        </div>
+      </div>
+
+      <label for="submittedBy">Form Submitted by</label>
+      <input type="text" id="submittedBy" name="submittedBy" placeholder="">
+
+      <div id="emailFields">
+        <label for="email">Email Address</label>
+        <input type="text" id="email" name="email" placeholder="">
+
+        <label for="contactNumber">Contact Number</label>
+        <input type="text" id="contactNumber" name="contactNumber" placeholder="">
+      </div>
+
+      <button type="submit">Submit</button>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById('addEquipment').addEventListener('click', function () {
+      const newEquipmentRow = document.querySelector('.equipment-row').cloneNode(true);
+      document.querySelector('#equipmentRequestForm').insertBefore(newEquipmentRow, document.querySelector('.add-button'));
+      newEquipmentRow.querySelector('input[name="equipmentName[]"]').value = '';
+      newEquipmentRow.querySelector('select[name="equipmentType[]"]').value = '';
+      newEquipmentRow.querySelector('input[name="equipmentQty[]"]').value = '';
+    });
+
+    document.addEventListener('click', function (event) {
+      if (event.target && event.target.classList.contains('remove-equipment')) {
+        event.target.closest('.equipment-row').remove();
+      }
+    });
+
+    document.getElementById('clinicalSupportRepNeeded').addEventListener('change', function () {
+      const clinicalSupportRepDiv = document.getElementById('clinicalSupportRep');
+      const checkboxes = clinicalSupportRepDiv.querySelectorAll('input[type="checkbox"]');
+
+      if (this.checked) {
+        clinicalSupportRepDiv.style.display = 'block';
+      } else {
+        clinicalSupportRepDiv.style.display = 'none';
+        checkboxes.forEach(checkbox => checkbox.checked = false);
+      }
+    });
+
+    document.getElementById('otherRep').addEventListener('change', function () {
+      document.getElementById('otherRepSpec').style.display = this.checked ? 'block' : 'none';
+    });
+
+    document.getElementById('submittedBy').addEventListener('input', function () {
+      const emailFields = document.getElementById('emailFields');
+      emailFields.style.display = this.value.trim() ? 'block' : 'none';
+    });
+  </script>
+
+</body>
+</html>
