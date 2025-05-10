@@ -94,7 +94,6 @@
       margin-top: 0.4rem;
     }
 
-    /* Business Card Styles */
     .contact-card {
       background-color: #f9f9f9;
       border: 1px solid #ddd;
@@ -103,7 +102,7 @@
       margin-bottom: 10px;
       flex-direction: column;
       gap: 8px;
-      display: none; /* Hide contact details initially */
+      display: none;
     }
 
     .contact-card h3 {
@@ -155,12 +154,10 @@
       font-size: 1rem;
     }
 
-    /* Show active content */
     .active {
       display: block !important;
     }
 
-    /* Disclaimer Styles */
     .disclaimer {
       background-color: #f4f4f4;
       padding: 1rem;
@@ -169,14 +166,12 @@
       font-size: 0.9rem;
       font-weight: 500;
     }
-
   </style>
 </head>
 <body>
   <div class="container">
     <header>Useful Links</header>
 
-    <!-- Procedure Reference Cards -->
     <div class="section">
       <div class="section-header" onclick="toggleSection(this)">
         <div>Procedure Reference Cards</div>
@@ -194,8 +189,7 @@
         <a href="#">Pelvic Fixation</a>
       </div>
     </div>
-    
-    <!-- Implant Catalogue -->
+
     <div class="section">
       <div class="section-header" onclick="toggleSection(this)">
         <div>Implant Catalogue</div>
@@ -208,48 +202,36 @@
       </div>
     </div>
 
-   <!-- Operating Table Section -->
-<div class="section">
-  <div class="section-header" onclick="toggleSection(this)">
-    <div>Orthopaedic Operating Tables</div>
-    <div class="circle-icon red">
-      <i class="fas fa-chevron-right chevron"></i>
+    <div class="section">
+      <div class="section-header" onclick="toggleSection(this)">
+        <div>Theatre Equipment</div>
+        <div class="circle-icon red">
+          <i class="fas fa-chevron-right chevron"></i>
+        </div>
+      </div>
+      <div class="section-content">
+        <a href="#">Tourniquet</a>
+        <a href="#">Diathermy Machine</a>
+        <a href="#">Arthroscopy Stack</a>
+        <a href="#">Orthoclast2</a>
+        <a href="#">Cell Saver</a>
+        <a href="#">Mercian Surgical Burs and Drill System</a>
+      </div>
+
+      <div class="section">
+        <div class="section-header" onclick="toggleSection(this)">
+          <div>Operating Tables</div>
+          <div class="circle-icon blue">
+            <i class="fas fa-chevron-right chevron"></i>
+          </div>
+        </div>
+        <div class="section-content">
+          <a href="#">Weight Capacity</a>
+          <a href="#">Positioning Supports</a>
+        </div>
+      </div>
     </div>
-  </div>
-  <div class="section-content">
-    <p><strong>1. Eschmann 50+ 300kg</strong></p>
-    <p>Information will be added soon.</p>
 
-    <p><strong>2. Eschmann 20+ and 30+ 450kg</strong></p>
-    <p>Information will be added soon.</p>
-
-    <p><strong>3. Marquet Orthstar 180kg</strong></p>
-    <p>Information will be added soon.</p>
-
-    <p><strong>4. Marquet Alphastar (plus) 360kg</strong></p>
-    <p>Information will be added soon.</p>
-
-    <p><strong>5. Marquet Alphastar 225kg</strong></p>
-    <p>Information will be added soon.</p>
-
-    <p><strong>6. Allen table 272kg</strong></p>
-    <p>Information will be added soon.</p>
-
-    <p><strong>7. Angio Table 200kg</strong></p>
-    <p>Information will be added soon.</p>
-
-    <p><strong>8. Pelvic Table 500LBS (226kg)</strong></p>
-    <p>Information will be added soon.</p>
-
-    <p><strong>9. Traction table 180kg</strong></p>
-    <p>Information will be added soon.</p>
-
-    <p><strong>10. Hana Table 450 LBS (204KG)</strong></p>
-    <p>Information will be added soon.</p>
-  </div>
-</div>
-
-    <!-- Contact Directory (Dynamically loaded from Firebase) -->
     <div class="section">
       <div class="section-header" onclick="toggleSection(this)">
         <div>Contact Directory</div>
@@ -258,37 +240,23 @@
         </div>
       </div>
       <div class="section-content" id="contact-search-section">
-        <input type="text" id="search-bar" placeholder="Search by name, company, or specification..." onkeyup="filterContacts()">
-        <div id="contacts-list">
-          <!-- Contacts will be dynamically loaded here -->
-        </div>
-
-        <!-- Disclaimer for Contact Directory -->
-        <div class="disclaimer" id="contact-directory-disclaimer" style="display: none;">
+        <input type="text" id="search-bar" placeholder="Search by name, company, or specification..." onkeyup="filterContacts(event)">
+        <div id="contacts-list"></div>
+        <div class="disclaimer" id="contact-directory-disclaimer">
           <strong>Disclaimer:</strong> The contact information listed here is provided for internal purposes and is subject to change. OrthoPod does not guarantee the accuracy or availability of the contacts listed.
         </div>
       </div>
     </div>
-
   </div>
 
   <script>
     function toggleSection(header) {
       const content = header.nextElementSibling;
       const icon = header.querySelector('.chevron');
-      
-      // Close all other sections
       const allSections = document.querySelectorAll('.section .section-content');
       allSections.forEach(section => {
-        if (section !== content) {
-          section.style.display = "none";
-        }
+        if (section !== content && !section.contains(header)) section.style.display = "none";
       });
-
-      // Hide both disclaimers initially
-      document.getElementById('contact-directory-disclaimer').style.display = 'none';
-
-      // Toggle the current section
       if (content.style.display === "block") {
         content.style.display = "none";
         icon.classList.remove('rotate');
@@ -298,7 +266,6 @@
       }
     }
 
-    // Firebase Initialization
     const firebaseConfig = {
       databaseURL: "https://contact-directory-225b7-default-rtdb.firebaseio.com/"
     };
@@ -309,14 +276,12 @@
     function loadContacts() {
       const ref = db.ref("contacts");
       const container = document.querySelector("#contacts-list");
-
       ref.once("value", (snapshot) => {
         const data = snapshot.val();
         if (!data) {
           container.innerHTML = "<p>No contact data available.</p>";
           return;
         }
-
         let html = "";
         for (const key in data) {
           const { name, company, specification, email, phone } = data[key];
@@ -330,39 +295,38 @@
             </div>
           `;
         }
-
         container.innerHTML = html;
       });
     }
 
-    // Filter contacts based on search input
-    function filterContacts() {
-      const searchValue = document.querySelector("#search-bar").value.toLowerCase();
+    function filterContacts(event) {
+      const searchValue = event.target.value.toLowerCase();
       const contactCards = document.querySelectorAll(".contact-card");
+      const container = document.querySelector("#contacts-list");
+
+      // If the search box is empty, hide the contact cards
+      if (searchValue === "") {
+        container.innerHTML = "";
+        return;
+      }
 
       let foundContact = false;
-
       contactCards.forEach(card => {
         const name = card.getAttribute("data-name");
         const company = card.getAttribute("data-company");
         const specification = card.getAttribute("data-specification");
-
         if (name.includes(searchValue) || company.includes(searchValue) || specification.includes(searchValue)) {
           card.style.display = "block";
-          card.classList.add("active");
           foundContact = true;
         } else {
           card.style.display = "none";
-          card.classList.remove("active");
         }
       });
-
       if (!foundContact) {
-        document.querySelector("#contacts-list").innerHTML = "<p>No contacts found.</p>";
+        container.innerHTML = "<p>No contacts found.</p>";
       }
     }
 
-    // Load the contacts when the page is ready
     window.onload = function() {
       loadContacts();
     }
