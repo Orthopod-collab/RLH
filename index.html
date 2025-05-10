@@ -46,6 +46,7 @@
       border-radius: 20px;
       background-color: #e8e8e8;
       transition: background-color 0.3s, color 0.3s;
+      margin-right: 0.5rem;
     }
 
     .top-links a:hover {
@@ -141,6 +142,7 @@
 
   <div class="top-links">
     <a href="links.html">Useful Links</a>
+    <a href="https://orthopod-collab.github.io/RLH/equipment.html" target="_blank">Equipment Request Form</a>
   </div>
 
   <h2>
@@ -192,24 +194,20 @@
     const searchInput = document.getElementById("searchBar");
     const resultsDiv = document.getElementById("results");
 
-    // Run search when the button is clicked or when 'Enter' key is pressed
     document.getElementById("searchBtn").addEventListener("click", runSearch);
     searchInput.addEventListener("keypress", e => {
       if (e.key === "Enter") runSearch();
     });
 
-    // Function to perform the search based on the input and selected field
     function runSearch() {
       const query = searchInput.value.trim().toLowerCase();
       resultsDiv.innerHTML = "";
 
-      // If the search query is empty, clear the results and return
       if (!query) {
-        resultsDiv.innerHTML = ""; // Clear results when search bar is empty
+        resultsDiv.innerHTML = "";
         return;
       }
 
-      // Filter inventory based on the selected field and search query
       const filtered = inventory.filter(item =>
         (item[searchField] || "").toLowerCase().includes(query)
       );
@@ -219,7 +217,6 @@
         return;
       }
 
-      // Display the filtered results
       filtered.forEach(item => {
         const div = document.createElement("div");
         div.className = "result";
@@ -242,27 +239,21 @@
       });
     }
 
-    // Change the search field based on the selected filter button
     document.querySelectorAll(".filter-btn").forEach(btn => {
       btn.addEventListener("click", () => {
-        // Update active button style
         document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
         btn.classList.add("active");
-
-        // Update search field based on button's data-field
         searchField = btn.getAttribute("data-field");
         searchInput.focus();
       });
     });
 
-    // Clear results when the input is emptied
     searchInput.addEventListener("input", function () {
       const query = searchInput.value.trim().toLowerCase();
       if (!query) {
-        resultsDiv.innerHTML = ""; // Clear results if search bar is empty
+        resultsDiv.innerHTML = "";
       }
     });
-
   </script>
 
 </body>
