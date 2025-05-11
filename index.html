@@ -5,10 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>OrthoPod</title>
 
-  <!-- Favicon and Apple Touch Icon -->
-  <link rel="icon" href="https://media-hosting.imagekit.io/f8efe6abf99d4b5a/OrthoPod.png" type="image/png" sizes="192x192">
-  <link rel="apple-touch-icon" href="https://media-hosting.imagekit.io/f8efe6abf99d4b5a/OrthoPod.png">
-
   <!-- Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;600&display=swap" rel="stylesheet">
   <link href="https://fonts.cdnfonts.com/s/106113/Aptos.woff" rel="stylesheet">
@@ -46,7 +42,6 @@
       border-radius: 20px;
       background-color: #e8e8e8;
       transition: background-color 0.3s, color 0.3s;
-      margin-right: 0.5rem;
     }
 
     .top-links a:hover {
@@ -131,6 +126,16 @@
       text-align: left;
     }
 
+    .instrument-link {
+      font-weight: bold;
+      text-decoration: none;
+      color: #4285f4;
+    }
+
+    .instrument-link:hover {
+      text-decoration: underline;
+    }
+
     mark {
       background-color: #ffe678;
       padding: 0 2px;
@@ -142,7 +147,6 @@
 
   <div class="top-links">
     <a href="links.html">Useful Links</a>
-    <a href="https://orthopod-collab.github.io/RLH/equipment.html" target="_blank">Equipment Request Form</a>
   </div>
 
   <h2>
@@ -167,94 +171,119 @@
 
   <div id="filters" style="margin-top: 1rem; margin-bottom: 2rem;">
     <button class="filter-btn active" data-field="Item">Search by Item</button>
-    <button class="filter-btn" data-field="Item ID">Search by Item ID</button>
-    <button class="filter-btn" data-field="Inclusion and Category">Search by Inclusion and Category</button>
-    <button class="filter-btn" data-field="Stock ID">Search by Stock ID</button>
+    <button class="filter-btn" data-field="ItemID">Search by Item ID</button>
+    <button class="filter-btn" data-field="InclusionCategory">Search by Category</button>
+    <button class="filter-btn" data-field="StockID">Search by Stock ID</button>
   </div>
 
   <div id="results">Loading inventory...</div>
 
   <script>
-    const firebaseUrl = "https://instruments-726d0-default-rtdb.firebaseio.com/inventory.json";
+    const firebaseUrl = "https://ortho-61f64-default-rtdb.firebaseio.com/instruments.json";
     let inventory = [];
-    let searchField = "Item"; // Default search field is 'Item'
+    let activeField = "Item";
 
-    // Fetch inventory data from Firebase
-    fetch(firebaseUrl)
-      .then(res => res.json())
-      .then(data => {
-        inventory = Object.values(data || {});
-        document.getElementById("results").innerHTML = "";
-      })
-      .catch(err => {
-        document.getElementById("results").innerText = "Failed to load inventory.";
-        console.error(err);
+    const searchBar = document.getElementById('searchBar');
+    const searchBtn = document.getElementById('searchBtn');
+    const resultsDiv = document.getElementById('results');
+
+    const placeholderMap = {
+      Item: "Search for Instrument or Consumable e.g. Mallet",
+      ItemID: "Enter Item ID e.g. U0799960",
+      InclusionCategory: "Enter Category e.g. MINI DRIVER TRAY",
+      StockID: "Enter Stock ID e.g. ZR6830"
+    };
+
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        activeField = btn.dataset.field;
+        searchBar.placeholder = placeholderMap[activeField] || '';
+        searchInventory();
       });
-
-    const searchInput = document.getElementById("searchBar");
-    const resultsDiv = document.getElementById("results");
-
-    document.getElementById("searchBtn").addEventListener("click", runSearch);
-    searchInput.addEventListener("keypress", e => {
-      if (e.key === "Enter") runSearch();
     });
 
-    function runSearch() {
-      const query = searchInput.value.trim().toLowerCase();
-      resultsDiv.innerHTML = "";
+    function highlightMatch(text, query) {
+      if (!query) return text;
+      const regex = new RegExp(`(${query})`, 'gi');
+      return text.replace(regex, '<mark>$1</mark>');
+    }
 
-      if (!query) {
-        resultsDiv.innerHTML = "";
+    function renderResults(items, query) {
+      if (items.length === 0) {
+        resultsDiv.innerHTML = 'No matching instruments found.';
         return;
       }
 
-      const filtered = inventory.filter(item =>
-        (item[searchField] || "").toLowerCase().includes(query)
-      );
+      resultsDiv.innerHTML = '';
+      items.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'result';
 
-      if (filtered.length === 0) {
-        resultsDiv.innerHTML = "<p>No matching items found.</p>";
-        return;
-      }
+        const fields = {
+          "Item": item.Item || '',
+          "ItemID": item.ItemID || '',
+          "InclusionCategory": item.InclusionCategory || '',
+          "StockID": item.StockID || '',
+          "StockLevel": item.StockLevel || '',
+          "TotalCount": item.TotalCount || '',
+          "StorageLocation": item.StorageLocation || ''
+        };
 
-      filtered.forEach(item => {
-        const div = document.createElement("div");
-        div.className = "result";
-        div.innerHTML = ` 
-          <div>
-            <strong>Inclusion and Category:</strong>
-            <a href="instrument-checklist.html?category=${encodeURIComponent(item['Inclusion and Category'] || 'N/A')}" target="_blank">
-              ${item["Inclusion and Category"] || 'N/A'}
-            </a>
-          </div>
-          <div><strong>Item:</strong> ${item["Item"] || 'N/A'}</div>
-          <div><strong>Item ID:</strong> ${item["Item ID"] || 'N/A'}</div>
-          <div><strong>Item Qty:</strong> ${item["Item Qty"] || 'N/A'}</div>
-          <div><strong>Stock ID:</strong> ${item["Stock ID"] || 'N/A'}</div>
-          <div><strong>Stock Level:</strong> ${item["Stock Level"] || 'N/A'}</div>
-          <div><strong>Storage Location:</strong> ${item["Storage Location"] || 'N/A'}</div>
-          <div><strong>Total Count:</strong> ${item["Total Count"] || 'N/A'}</div>
+        let html = `
+          <strong>Item:</strong> ${highlightMatch(fields.Item, query)} <br />
+          <strong>Item ID:</strong> ${highlightMatch(fields.ItemID, query)} <br />
+          <strong>Category:</strong> ${highlightMatch(fields.InclusionCategory, query)} <br />
+          <strong>Stock ID:</strong> ${highlightMatch(fields.StockID, query)} <br />
+          <strong>Stock Level:</strong> ${fields.StockLevel} <br />
+          <strong>Total Count:</strong> ${fields.TotalCount} <br />
+          <strong>Storage Location:</strong> ${fields.StorageLocation} <br />
+          <a href="instrument-checklist.html?category=${encodeURIComponent(fields.InclusionCategory)}" class="instrument-link">Instrument Checklist</a>
         `;
+
+        div.innerHTML = html;
         resultsDiv.appendChild(div);
       });
     }
 
-    document.querySelectorAll(".filter-btn").forEach(btn => {
-      btn.addEventListener("click", () => {
-        document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
-        btn.classList.add("active");
-        searchField = btn.getAttribute("data-field");
-        searchInput.focus();
-      });
-    });
-
-    searchInput.addEventListener("input", function () {
-      const query = searchInput.value.trim().toLowerCase();
+    function searchInventory() {
+      const query = searchBar.value.toLowerCase().trim();
       if (!query) {
-        resultsDiv.innerHTML = "";
+        resultsDiv.innerHTML = '';
+        return;
       }
-    });
-  </script>
 
+      const filtered = inventory.filter(item => {
+        const value = (item[activeField] || '').toLowerCase();
+        return value.includes(query);
+      });
+
+      renderResults(filtered, query);
+    }
+
+    function fetchInventory() {
+      fetch(firebaseUrl)
+        .then(response => response.json())
+        .then(data => {
+          inventory = Object.values(data || {});
+          resultsDiv.innerHTML = '';
+        })
+        .catch(error => {
+          resultsDiv.innerHTML = 'Error loading inventory.';
+          console.error("Firebase fetch error:", error);
+        });
+    }
+
+    searchBtn.addEventListener('click', searchInventory);
+    searchBar.addEventListener('keydown', e => {
+      if (e.key === 'Enter') searchInventory();
+    });
+    searchBar.addEventListener('input', () => {
+      if (searchBar.value.trim() === '') resultsDiv.innerHTML = '';
+    });
+
+    fetchInventory();
+  </script>
 </body>
 </html>
