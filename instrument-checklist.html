@@ -22,8 +22,8 @@
       margin-bottom: 20px;
       letter-spacing: -1px;
       line-height: 1.1;
-      color: navy; /* Navy blue title */
-      text-transform: uppercase; /* Added uppercase style for a modern feel */
+      color: navy;
+      text-transform: uppercase;
     }
 
     /* Table Styles */
@@ -46,13 +46,13 @@
     /* Link Styles */
     a {
       text-decoration: none;
-      color: blue; /* Set the link color to blue */
-      font-weight: bold; /* Make the link text bold */
+      color: blue;
+      font-weight: bold;
     }
 
     a:hover {
-      color: darkblue; /* Dark blue on hover */
-      text-decoration: underline; /* Underline on hover for better interactivity */
+      color: darkblue;
+      text-decoration: underline;
     }
   </style>
 </head>
@@ -75,7 +75,7 @@
   </table>
 
   <script>
-    const firebaseUrl = "https://instruments-726d0-default-rtdb.firebaseio.com/inventory.json";
+    const firebaseUrl = "https://ortho-61f64-default-rtdb.firebaseio.com/instruments.json";
     const categoryName = new URLSearchParams(window.location.search).get('category');
     const categoryTitle = document.getElementById("categoryName");
     const totalCountElement = document.getElementById("totalCount");
@@ -106,7 +106,7 @@
       categoryTitle.innerHTML = category;
 
       const filteredItems = inventory.filter(item =>
-        item['Inclusion and Category'] === category
+        item['InclusionCategory'] === category
       );
 
       if (filteredItems.length === 0) {
@@ -115,21 +115,21 @@
       }
 
       // Calculate the total count
-      const totalCount = filteredItems.reduce((total, item) => total + (item["Item Qty"] || 0), 0);
+      const totalCount = filteredItems.reduce((total, item) => total + (item["ItemQuantity"] || 0), 0);
       totalCountElement.innerHTML = totalCount;
 
-      // Display filtered items in a table with links
+      // Display filtered items in a table
       filteredItems.forEach(item => {
         const row = document.createElement("tr");
         row.innerHTML = `
-          <td><a href="#" id="item-link-${item['Item ID']}">${item["Item"] || 'N/A'}</a></td>
-          <td>${item["Item ID"] || 'N/A'}</td>
-          <td>${item["Item Qty"] || 'N/A'}</td>
+          <td><a href="#" id="item-link-${item['ItemID']}">${item["Item"] || 'N/A'}</a></td>
+          <td>${item["ItemID"] || 'N/A'}</td>
+          <td>${item["ItemQuantity"] || 'N/A'}</td>
         `;
         categoryItemsElement.appendChild(row);
 
         // You can add the link logic here later, for example:
-        const itemLink = document.getElementById(`item-link-${item['Item ID']}`);
+        const itemLink = document.getElementById(`item-link-${item['ItemID']}`);
         itemLink.href = `#`;  // Replace with the actual link
       });
     }
