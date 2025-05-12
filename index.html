@@ -182,7 +182,7 @@
   <div id="results">Loading inventory...</div>
 
   <script>
-    const firebaseUrl = "https://instruments-4cd2b-default-rtdb.firebaseio.com/items.json";
+    const firebaseUrl = "https://orthopod-collab.github.io/RLH/cvjson.json";
     let inventory = [];
     let activeField = "Item";
 
@@ -266,15 +266,18 @@
     }
 
     function fetchInventory() {
-      fetch(firebaseUrl)
-        .then(response => response.json())
+      fetch(githubJsonUrl)
+        .then(response => {
+          if (!response.ok) throw new Error("Network response was not ok");
+          return response.json();
+        })
         .then(data => {
           inventory = Object.values(data || {});
           resultsDiv.innerHTML = '';
         })
         .catch(error => {
           resultsDiv.innerHTML = 'Error loading inventory.';
-          console.error("Firebase fetch error:", error);
+          console.error("GitHub fetch error:", error);
         });
     }
 
