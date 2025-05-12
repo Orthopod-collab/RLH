@@ -175,7 +175,7 @@
   <div id="filters" style="margin-top: 1rem; margin-bottom: 2rem;">
     <button class="filter-btn active" data-field="Item">Search by Item</button>
     <button class="filter-btn" data-field="ItemID">Search by Item ID</button>
-    <button class="filter-btn" data-field="InclusionCategory">Search by Category</button>
+    <button class="filter-btn" data-field="Category">Search by Category</button>
     <button class="filter-btn" data-field="StockID">Search by Stock ID</button>
   </div>
 
@@ -193,7 +193,7 @@
     const placeholderMap = {
       Item: "Search for Instrument or Consumable e.g. Mallet",
       ItemID: "Enter Item ID e.g. U0799960",
-      InclusionCategory: "Enter Category e.g. MINI DRIVER TRAY",
+      Category: "Enter Category e.g. MINI DRIVER TRAY",
       StockID: "Enter Stock ID e.g. ZR6830"
     };
 
@@ -227,7 +227,7 @@
         const fields = {
           "Item": item.Item || '',
           "ItemID": item.ItemID || '',
-          "InclusionCategory": item.InclusionCategory || '',
+          "Category": item.Category || '',
           "StockID": item.StockID || '',
           "StockLevel": item.StockLevel || '',
           "TotalCount": item.TotalCount || '',
@@ -237,12 +237,12 @@
         let html = `
           <strong>Item:</strong> ${highlightMatch(fields.Item, query)} <br />
           <strong>Item ID:</strong> ${highlightMatch(fields.ItemID, query)} <br />
-          <strong>Category:</strong> ${highlightMatch(fields.InclusionCategory, query)} <br />
+          <strong>Category:</strong> ${highlightMatch(fields.Category, query)} <br />
           <strong>Stock ID:</strong> ${highlightMatch(fields.StockID, query)} <br />
           <strong>Stock Level:</strong> ${fields.StockLevel} <br />
           <strong>Total Count:</strong> ${fields.TotalCount} <br />
           <strong>Storage Location:</strong> ${fields.StorageLocation} <br />
-          <a href="instrument-checklist.html?category=${encodeURIComponent(fields.InclusionCategory)}" class="instrument-link">Instrument Checklist</a>
+          <a href="instrument-checklist.html?category=${encodeURIComponent(fields.Category)}" class="instrument-link">Instrument Checklist</a>
         `;
 
         div.innerHTML = html;
@@ -266,7 +266,7 @@
     }
 
     function fetchInventory() {
-      fetch(githubJsonUrl)
+      fetch(firebaseUrl)
         .then(response => {
           if (!response.ok) throw new Error("Network response was not ok");
           return response.json();
