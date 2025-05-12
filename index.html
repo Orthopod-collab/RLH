@@ -174,15 +174,15 @@
 
   <div id="filters" style="margin-top: 1rem; margin-bottom: 2rem;">
     <button class="filter-btn active" data-field="Item">Search by Item</button>
-    <button class="filter-btn" data-field="ItemID">Search by Item ID</button>
+    <button class="filter-btn" data-field="Item ID">Search by Item ID</button>
     <button class="filter-btn" data-field="Category">Search by Category</button>
-    <button class="filter-btn" data-field="StockID">Search by Stock ID</button>
+    <button class="filter-btn" data-field="Stock ID">Search by Stock ID</button>
   </div>
 
   <div id="results">Loading inventory...</div>
 
   <script>
-    const firebaseUrl = "https://orthopod-collab.github.io/RLH/csvjson.json";
+    const githubJsonUrl = "https://orthopod-collab.github.io/RLH/csvjson.json";
     let inventory = [];
     let activeField = "Item";
 
@@ -191,10 +191,10 @@
     const resultsDiv = document.getElementById('results');
 
     const placeholderMap = {
-      Item: "Search for Instrument or Consumable e.g. Mallet",
-      ItemID: "Enter Item ID e.g. U0799960",
-      Category: "Enter Category e.g. MINI DRIVER TRAY",
-      StockID: "Enter Stock ID e.g. ZR6830"
+      "Item": "Search for Instrument or Consumable e.g. Mallet",
+      "Item ID": "Enter Item ID e.g. U0799960",
+      "Category": "Enter Category e.g. MINI DRIVER TRAY",
+      "Stock ID": "Enter Stock ID e.g. ZR6830"
     };
 
     document.querySelectorAll('.filter-btn').forEach(btn => {
@@ -225,18 +225,20 @@
         div.className = 'result';
 
         const fields = {
-          "Item": item.Item || '',
-          "ItemID": item.ItemID || '',
-          "Category": item.Category || '',
-          "StockID": item.StockID || '',
-          "StockLevel": item.StockLevel || '',
-          "TotalCount": item.TotalCount || '',
-          "StorageLocation": item.StorageLocation || ''
+          "Item": item["Item"] || '',
+          "ItemID": item["Item ID"] || '',
+          "ItemQty": item["Item Qty"] || '',
+          "Category": item["Category"] || '',
+          "StockID": item["Stock ID"] || '',
+          "StockLevel": item["Stock Level"] || '',
+          "TotalCount": item["Total Count"] || '',
+          "StorageLocation": item["Storage Location"] || ''
         };
 
         let html = `
           <strong>Item:</strong> ${highlightMatch(fields.Item, query)} <br />
           <strong>Item ID:</strong> ${highlightMatch(fields.ItemID, query)} <br />
+          <strong>Item Qty:</strong> ${fields.ItemQty} <br />
           <strong>Category:</strong> ${highlightMatch(fields.Category, query)} <br />
           <strong>Stock ID:</strong> ${highlightMatch(fields.StockID, query)} <br />
           <strong>Stock Level:</strong> ${fields.StockLevel} <br />
@@ -266,7 +268,7 @@
     }
 
     function fetchInventory() {
-      fetch(firebaseUrl)
+      fetch(githubJsonUrl)
         .then(response => {
           if (!response.ok) throw new Error("Network response was not ok");
           return response.json();
