@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,93 +9,48 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <style>
-    body {
-      font-family: 'Inter', sans-serif;
-      background-color: #f4f7fa;
-      margin: 0;
-      padding: 1rem;
+    body { font-family: 'Inter', sans-serif; background: #f4f7fa; padding: 1rem; }
+    h1 { text-align: center; color: #1a3d5d; margin-bottom: 0.5rem; }
+    select, input { font-size: 13px; padding: 4px; border-radius: 4px; border: 1px solid #ccc; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 1rem; }
+    th, td { padding: 6px 8px; border: 1px solid #ddd; vertical-align: middle; }
+    th { background: #eaf0f6; cursor: pointer; }
+    tr:nth-child(even) { background-color: #f9fcff; }
+
+    .tag {
+      display: inline-block; padding: 4px 8px; border-radius: 4px;
+      font-weight: bold; text-align: center; color: white;
     }
-    h1 {
-      text-align: center;
-      color: #1a3d5d;
-      margin-bottom: 1rem;
-    }
-    #filterInput {
-      width: 250px;
-      padding: 6px;
-      font-size: 13px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      box-sizing: border-box;
-      display: block;
-      margin: 0 auto 1rem auto;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
-    }
-    th, td {
-      padding: 6px 8px;
-      border: 1px solid #ddd;
-      vertical-align: middle;
-    }
-    th {
-      background-color: #eaf0f6;
-    }
-    tr:nth-child(even) {
-      background-color: #f9fcff;
-    }
-    input, select {
-      font-size: 12px;
-      padding: 4px;
-      width: 100%;
-      box-sizing: border-box;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-    }
-    select.status-tab, select.type-tab {
-      border: none;
-      color: #fff;
-      font-weight: bold;
-      text-align: center;
-      padding: 6px;
-      border-radius: 4px;
-      appearance: none;
-    }
-    .Request\ Received { background-color: #42a5f5; }
-    .Item\ Ordered { background-color: #ffd54f; color: #333; }
+    .Request-Received { background-color: #42a5f5; }
+    .Item-Ordered { background-color: #ffd54f; color: #333; }
     .Delivered { background-color: #81c784; }
-    .SSD\ Processing { background-color: #ffb74d; color: #333; }
-    .In\ Storage { background-color: #9575cd; }
-    .Returned\ to\ Supplier { background-color: #f06292; }
+    .SSD-Processing { background-color: #ffb74d; color: #333; }
+    .In-Storage { background-color: #9575cd; }
+    .Returned-to-Supplier { background-color: #f06292; }
     .Loan { background-color: #4db6ac; }
     .Consignment { background-color: #7986cb; }
-    .\-To\ be\ Updated\- { background-color: #b0bec5; color: #333; }
+    .To-be-Updated { background-color: #b0bec5; color: #333; }
+
     .actions button {
-      background: none;
-      border: none;
-      font-size: 16px;
-      cursor: pointer;
-      margin: 0 3px;
+      background: none; border: none; font-size: 16px; cursor: pointer; margin: 0 3px;
     }
-    .equipment-popup {
-      position: absolute;
-      background: white;
-      border: 1px solid #ccc;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      padding: 10px;
-      font-size: 12px;
-      max-width: 300px;
-      display: none;
-      z-index: 999;
-    }
+
+    .pagination { text-align: center; margin-top: 1rem; }
+    .pagination button { padding: 4px 8px; margin: 0 4px; }
   </style>
 </head>
 <body>
   <h1>Equipment Request Tracker</h1>
-  <input type="text" id="filterInput" placeholder="Search requests...">
-  <div id="popup" class="equipment-popup"></div>
+  <select id="statusFilter">
+    <option value="">Filter by Status</option>
+    <option>Request Received</option>
+    <option>Item Ordered</option>
+    <option>Delivered</option>
+    <option>SSD Processing</option>
+    <option>In Storage</option>
+    <option>Returned to Supplier</option>
+    <option>-To be Updated-</option>
+  </select>
   <table>
     <thead>
       <tr>
@@ -115,6 +71,7 @@
     </thead>
     <tbody id="requestTable"></tbody>
   </table>
+  <div class="pagination" id="paginationControls"></div>
 
   <script>
     const firebaseConfig = {
@@ -125,139 +82,166 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    const popup = document.getElementById('popup');
-    function showPopup(content, x, y) {
-      popup.innerHTML = content;
-      popup.style.left = x + 'px';
-      popup.style.top = y + 'px';
-      popup.style.display = 'block';
-    }
-    function hidePopup() { popup.style.display = 'none'; }
-    document.addEventListener('click', () => hidePopup());
+    const statusOptions = ["-To be Updated-", "Request Received", "Item Ordered", "Delivered", "SSD Processing", "In Storage", "Returned to Supplier"];
+    const typeOptions = ["-To be Updated-", "Loan", "Consignment"];
 
-    const statusOptions = ['-To be Updated-', 'Request Received', 'Item Ordered', 'Delivered', 'SSD Processing', 'In Storage', 'Returned to Supplier'];
-    const typeOptions = ['-To be Updated-', 'Loan', 'Consignment'];
+    function formatClass(text) {
+      return (text || "To be Updated").replace(/ /g, "-").replace(/^-/, "").replace(/-$/, "");
+    }
 
     function createOption(value) {
-      const opt = document.createElement('option');
+      const opt = document.createElement("option");
       opt.value = value;
       opt.textContent = value;
       return opt;
     }
 
-    function updateClass(selectEl, baseClass) {
-      selectEl.className = baseClass + ' ' + selectEl.value;
-    }
+    function createRow(id, d) {
+      const tr = document.createElement("tr");
 
-    function createRow(docId, data) {
-      const tr = document.createElement('tr');
-      const td = value => { const td = document.createElement('td'); td.textContent = value || ''; return td; };
+      const td = val => { const td = document.createElement("td"); td.textContent = val || ''; return td; };
+      tr.appendChild(td(d.consultant));
+      tr.appendChild(td(d.plannedProcedure));
+      tr.appendChild(td(d.procedureDate));
 
-      tr.dataset.search = `${data.consultant} ${data.plannedProcedure} ${data.location} ${data.status}`.toLowerCase();
-
-      tr.appendChild(td(data.consultant));
-      tr.appendChild(td(data.plannedProcedure));
-      tr.appendChild(td(data.procedureDate));
-
-      const equipTd = document.createElement('td');
-      const viewLink = document.createElement('a');
-      viewLink.href = "#";
-      viewLink.textContent = "View List";
+      const equipTd = document.createElement("td");
+      const viewLink = document.createElement("a");
+      viewLink.href = "#"; viewLink.textContent = "View List";
       viewLink.onclick = e => {
         e.preventDefault();
-        e.stopPropagation();
-        const list = (data.equipment || []).map(eq => `<li>${eq.name} (${eq.type}) x${eq.quantity}</li>`).join('');
-        showPopup(`<strong>Equipment List:</strong><ul>${list}</ul>`, e.pageX + 10, e.pageY);
+        alert((d.equipment || []).map(eq => `${eq.name} (${eq.type}) x${eq.quantity}`).join("\n"));
       };
       equipTd.appendChild(viewLink);
       tr.appendChild(equipTd);
 
-      tr.appendChild(td(data.clinicalSupportRepNeeded ? 'Yes' : 'No'));
-      tr.appendChild(td(data.submittedBy));
+      tr.appendChild(td(d.clinicalSupportRepNeeded ? "Yes" : "No"));
+      tr.appendChild(td(d.submittedBy));
 
-      const receivedTd = document.createElement('td');
-      const receivedInput = document.createElement('input');
-      receivedInput.value = data.receivedBy || '';
-      receivedInput.onchange = () => db.collection("requests").doc(docId).update({ receivedBy: receivedInput.value });
-      receivedTd.appendChild(receivedInput);
-      tr.appendChild(receivedTd);
+      // Editable columns
+      const received = document.createElement("input"); received.value = d.receivedBy || ""; received.disabled = true;
+      const receivedTd = document.createElement("td"); receivedTd.appendChild(received); tr.appendChild(receivedTd);
 
-      const statusTd = document.createElement('td');
-      const statusSel = document.createElement('select');
-      statusSel.className = 'status-tab';
-      statusOptions.forEach(opt => statusSel.appendChild(createOption(opt)));
-      statusSel.value = data.status || '-To be Updated-';
-      updateClass(statusSel, 'status-tab');
-      statusSel.onchange = () => {
-        updateClass(statusSel, 'status-tab');
-        db.collection("requests").doc(docId).update({ status: statusSel.value });
-      };
-      statusTd.appendChild(statusSel);
+      const statusTd = document.createElement("td");
+      const statusSpan = document.createElement("span");
+      statusSpan.className = "tag " + formatClass(d.status);
+      statusSpan.textContent = d.status || "-To be Updated-";
+      statusTd.appendChild(statusSpan);
       tr.appendChild(statusTd);
 
-      const locationTd = document.createElement('td');
-      const locationInput = document.createElement('input');
-      locationInput.value = data.location || '';
-      locationInput.onchange = () => db.collection("requests").doc(docId).update({ location: locationInput.value });
-      locationTd.appendChild(locationInput);
-      tr.appendChild(locationTd);
+      const location = document.createElement("input"); location.value = d.location || ""; location.disabled = true;
+      const locationTd = document.createElement("td"); locationTd.appendChild(location); tr.appendChild(locationTd);
 
-      const contactTd = document.createElement('td');
-      const contactInput = document.createElement('input');
-      contactInput.value = data.contactRep || '';
-      contactInput.onchange = () => db.collection("requests").doc(docId).update({ contactRep: contactInput.value });
-      contactTd.appendChild(contactInput);
-      tr.appendChild(contactTd);
+      const contact = document.createElement("input"); contact.value = d.contactRep || ""; contact.disabled = true;
+      const contactTd = document.createElement("td"); contactTd.appendChild(contact); tr.appendChild(contactTd);
 
-      const typeTd = document.createElement('td');
-      const typeSel = document.createElement('select');
-      typeSel.className = 'type-tab';
-      typeOptions.forEach(opt => typeSel.appendChild(createOption(opt)));
-      typeSel.value = data.type || '-To be Updated-';
-      updateClass(typeSel, 'type-tab');
-      typeSel.onchange = () => {
-        updateClass(typeSel, 'type-tab');
-        db.collection("requests").doc(docId).update({ type: typeSel.value });
-      };
-      typeTd.appendChild(typeSel);
+      const typeTd = document.createElement("td");
+      const typeSpan = document.createElement("span");
+      typeSpan.className = "tag " + formatClass(d.type);
+      typeSpan.textContent = d.type || "-To be Updated-";
+      typeTd.appendChild(typeSpan);
       tr.appendChild(typeTd);
 
-      const poTd = document.createElement('td');
-      const poInput = document.createElement('input');
-      poInput.value = data.poNumber || '';
-      poInput.onchange = () => db.collection("requests").doc(docId).update({ poNumber: poInput.value });
-      poTd.appendChild(poInput);
-      tr.appendChild(poTd);
+      const po = document.createElement("input"); po.value = d.poNumber || ""; po.disabled = true;
+      const poTd = document.createElement("td"); poTd.appendChild(po); tr.appendChild(poTd);
 
-      const actionTd = document.createElement('td');
-      actionTd.className = "actions";
-      const delBtn = document.createElement('button');
-      delBtn.textContent = '🗑️';
+      const actionTd = document.createElement("td");
+      const editBtn = document.createElement("button"); editBtn.textContent = "🖊️";
+      const saveBtn = document.createElement("button"); saveBtn.textContent = "💾"; saveBtn.style.display = "none";
+      const delBtn = document.createElement("button"); delBtn.textContent = "🗑️";
+
+      editBtn.onclick = () => {
+        received.disabled = location.disabled = contact.disabled = po.disabled = false;
+        const statusSel = document.createElement("select");
+        statusOptions.forEach(opt => statusSel.appendChild(createOption(opt)));
+        statusSel.value = d.status || "-To be Updated-";
+        statusTd.innerHTML = ""; statusTd.appendChild(statusSel);
+
+        const typeSel = document.createElement("select");
+        typeOptions.forEach(opt => typeSel.appendChild(createOption(opt)));
+        typeSel.value = d.type || "-To be Updated-";
+        typeTd.innerHTML = ""; typeTd.appendChild(typeSel);
+
+        editBtn.style.display = "none";
+        saveBtn.style.display = "inline";
+      };
+
+      saveBtn.onclick = () => {
+        const newStatus = statusTd.querySelector("select").value;
+        const newType = typeTd.querySelector("select").value;
+
+        db.collection("requests").doc(id).update({
+          receivedBy: received.value,
+          status: newStatus,
+          location: location.value,
+          contactRep: contact.value,
+          type: newType,
+          poNumber: po.value
+        });
+
+        received.disabled = location.disabled = contact.disabled = po.disabled = true;
+
+        statusTd.innerHTML = "";
+        const statusSpan = document.createElement("span");
+        statusSpan.className = "tag " + formatClass(newStatus);
+        statusSpan.textContent = newStatus;
+        statusTd.appendChild(statusSpan);
+
+        typeTd.innerHTML = "";
+        const typeSpan = document.createElement("span");
+        typeSpan.className = "tag " + formatClass(newType);
+        typeSpan.textContent = newType;
+        typeTd.appendChild(typeSpan);
+
+        saveBtn.style.display = "none";
+        editBtn.style.display = "inline";
+      };
+
       delBtn.onclick = () => {
         if (confirm("Delete this request?")) {
-          db.collection("requests").doc(docId).delete();
+          db.collection("requests").doc(id).delete();
         }
       };
-      actionTd.appendChild(delBtn);
+
+      actionTd.className = "actions";
+      actionTd.append(editBtn, saveBtn, delBtn);
       tr.appendChild(actionTd);
 
       return tr;
     }
 
-    db.collection("requests").orderBy("timestamp", "desc").onSnapshot(snapshot => {
-      const table = document.getElementById("requestTable");
-      table.innerHTML = "";
-      snapshot.forEach(doc => {
-        const row = createRow(doc.id, doc.data());
-        table.appendChild(row);
-      });
+    let allData = [];
+    let currentPage = 1;
+    const rowsPerPage = 15;
+
+    function renderTable() {
+      const tbody = document.getElementById("requestTable");
+      const filter = document.getElementById("statusFilter").value;
+      const filtered = filter ? allData.filter(d => d.data.status === filter) : allData;
+      const start = (currentPage - 1) * rowsPerPage;
+      const page = filtered.slice(start, start + rowsPerPage);
+      tbody.innerHTML = "";
+      page.forEach(doc => tbody.appendChild(createRow(doc.id, doc.data)));
+      const totalPages = Math.ceil(filtered.length / rowsPerPage);
+      document.getElementById("paginationControls").innerHTML = `
+        <button onclick="prevPage()" ${currentPage === 1 ? "disabled" : ""}>Prev</button>
+        Page ${currentPage} of ${totalPages}
+        <button onclick="nextPage(${totalPages})" ${currentPage === totalPages ? "disabled" : ""}>Next</button>
+      `;
+    }
+
+    function prevPage() { if (currentPage > 1) { currentPage--; renderTable(); } }
+    function nextPage(max) { if (currentPage < max) { currentPage++; renderTable(); } }
+
+    firebase.firestore().collection("requests").orderBy("timestamp", "desc").onSnapshot(snapshot => {
+      allData = [];
+      snapshot.forEach(doc => allData.push({ id: doc.id, data: doc.data() }));
+      currentPage = 1;
+      renderTable();
     });
 
-    document.getElementById('filterInput').addEventListener('input', function () {
-      const value = this.value.toLowerCase();
-      document.querySelectorAll('#requestTable tr').forEach(row => {
-        row.style.display = row.dataset.search.includes(value) ? '' : 'none';
-      });
+    document.getElementById("statusFilter").addEventListener("change", () => {
+      currentPage = 1;
+      renderTable();
     });
   </script>
 </body>
