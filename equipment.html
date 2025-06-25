@@ -3,287 +3,262 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Equipment Request Form</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <title>Equipment Request Tracker</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet"/>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <style>
     body {
       font-family: 'Inter', sans-serif;
-      padding: 40px;
-      background-color: #f4f7fb;
-      color: #333;
+      background-color: #f4f7fa;
+      margin: 0;
+      padding: 1rem;
     }
-
-    .form-container {
-      max-width: 750px;
-      margin: auto;
-      background: #fff;
-      padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      margin-top: 40px;
-    }
-
-    h2 {
+    h1 {
       text-align: center;
-      font-weight: 600;
-      margin-bottom: 30px;
+      color: #1a3d5d;
+      margin-bottom: 1rem;
     }
-
-    label {
-      font-weight: 500;
-      display: block;
-      margin: 15px 0 5px;
-      color: #000;
-    }
-
-    input[type="text"],
-    input[type="number"],
-    input[type="date"],
-    select {
-      padding: 12px;
+    #filterInput {
+      width: 250px;
+      padding: 6px;
+      font-size: 13px;
       border: 1px solid #ccc;
-      border-radius: 6px;
+      border-radius: 4px;
       box-sizing: border-box;
-      width: auto;
-      margin-bottom: 20px;
-      color: #000;
+      display: block;
+      margin: 0 auto 1rem auto;
     }
-
-    .equipment-row {
-      display: flex;
-      gap: 15px;
-      margin-bottom: 15px;
-      align-items: center;
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
     }
-
-    .equipment-row input[name="equipmentName[]"] {
-      flex: 4;
+    th, td {
+      padding: 6px 8px;
+      border: 1px solid #ddd;
+      vertical-align: middle;
     }
-
-    .equipment-row select[name="equipmentType[]"] {
-      flex: 1.2;
+    th {
+      background-color: #eaf0f6;
     }
-
-    .equipment-row input[name="equipmentQty[]"] {
-      flex: 0.6;
-      max-width: 70px;
+    tr:nth-child(even) {
+      background-color: #f9fcff;
     }
-
-    .equipment-row button {
-      background-color: #dc3545;
-      color: white;
+    input, select {
+      font-size: 12px;
+      padding: 4px;
+      width: 100%;
+      box-sizing: border-box;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    select.status-tab, select.type-tab {
       border: none;
-      padding: 10px 14px;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-
-    .equipment-row button:hover {
-      background-color: #b02a37;
-    }
-
-    .add-button {
-      margin-top: 10px;
-      padding: 10px 16px;
-      background-color: #28a745;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-
-    .add-button:hover {
-      background-color: #218838;
-    }
-
-    button[type="submit"] {
-      padding: 12px 16px;
-      background-color: #007BFF;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-
-    button[type="submit"]:hover {
-      background-color: #0056b3;
-    }
-
-    .toggle-container {
-      display: flex;
-      align-items: center;
-      margin-bottom: 20px;
-    }
-
-    .toggle-container label {
-      margin-left: 10px;
-    }
-
-    .toggle-container input {
-      width: 40px;
-      height: 20px;
+      color: #fff;
+      font-weight: bold;
+      text-align: center;
+      padding: 6px;
+      border-radius: 4px;
       appearance: none;
-      background-color: #ccc;
-      border-radius: 50px;
-      position: relative;
+    }
+    .Request\ Received { background-color: #42a5f5; }
+    .Item\ Ordered { background-color: #ffd54f; color: #333; }
+    .Delivered { background-color: #81c784; }
+    .SSD\ Processing { background-color: #ffb74d; color: #333; }
+    .In\ Storage { background-color: #9575cd; }
+    .Returned\ to\ Supplier { background-color: #f06292; }
+    .Loan { background-color: #4db6ac; }
+    .Consignment { background-color: #7986cb; }
+    .\-To\ be\ Updated\- { background-color: #b0bec5; color: #333; }
+    .actions button {
+      background: none;
+      border: none;
+      font-size: 16px;
       cursor: pointer;
+      margin: 0 3px;
     }
-
-    .toggle-container input:checked {
-      background-color: #28a745;
-    }
-
-    .toggle-container input:before {
-      content: '';
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      background-color: white;
+    .equipment-popup {
       position: absolute;
-      top: 1px;
-      left: 1px;
-      transition: 0.3s;
-    }
-
-    .toggle-container input:checked:before {
-      left: 21px;
-    }
-
-    .checkbox-container {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-      margin-top: 15px;
-    }
-
-    .checkbox-container input {
-      margin-right: 10px;
-    }
-
-    #emailFields {
+      background: white;
+      border: 1px solid #ccc;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      padding: 10px;
+      font-size: 12px;
+      max-width: 300px;
       display: none;
+      z-index: 999;
     }
   </style>
 </head>
 <body>
-
-  <!-- Header Image -->
-  <img src="https://i.imgur.com/I70Mrfz.jpeg" alt="Header Image" style="width: 45%; margin: auto; display: block;">
-
-  <div class="form-container">
-    <h2>Equipment Request Form</h2>
-    <form id="equipmentRequestForm">
-      
-      <label for="consultant">Requesting Consultant</label>
-      <input type="text" id="consultant" name="consultant" placeholder="">
-
-      <label for="plannedProcedure">Planned Procedure</label>
-      <input type="text" id="plannedProcedure" name="plannedProcedure" placeholder="">
-
-      <label for="procedureDate">Date of Procedure</label>
-      <input type="date" id="procedureDate" name="procedureDate">
-
-      <label for="equipment">Equipment(s) Needed</label>
-      <div class="equipment-row">
-        <input type="text" name="equipmentName[]" placeholder="Item Description">
-        <select name="equipmentType[]">
-          <option value="">Select Type</option>
-          <option value="Instrument Tray">Instrument Tray</option>
-          <option value="Consumable">Consumable</option>
-          <option value="Implant">Implant</option>
-        </select>
-        <input type="number" name="equipmentQty[]" placeholder="Qty" max="50">
-        <button type="button" class="remove-equipment">Remove</button>
-      </div>
-      <button type="button" class="add-button" id="addEquipment">Add Equipment</button>
-
-      <div class="toggle-container">
-        <input type="checkbox" id="clinicalSupportRepNeeded">
-        <label for="clinicalSupportRepNeeded">Clinical Support Rep Needed?</label>
-      </div>
-
-      <div id="clinicalSupportRep" style="display:none;">
-        <label for="supportRep">Clinical Support Rep</label>
-        <div class="checkbox-container">
-          <input type="checkbox" id="acumed" name="supportRep" value="Acumed"><label for="acumed">Acumed</label>
-          <input type="checkbox" id="arthrex" name="supportRep" value="Arthrex"><label for="arthrex">Arthrex</label>
-          <input type="checkbox" id="bidermann" name="supportRep" value="Bidermann"><label for="bidermann">Bidermann</label>
-          <input type="checkbox" id="depuySynthes" name="supportRep" value="DePuy Synthes"><label for="depuySynthes">DePuy Synthes</label>
-          <input type="checkbox" id="jri" name="supportRep" value="JRI"><label for="jri">JRI</label>
-          <input type="checkbox" id="lavenderMedical" name="supportRep" value="Lavender Medical"><label for="lavenderMedical">Lavender Medical</label>
-          <input type="checkbox" id="leda" name="supportRep" value="Leda"><label for="leda">Leda</label>
-          <input type="checkbox" id="paragon" name="supportRep" value="Paragon"><label for="paragon">Paragon</label>
-          <input type="checkbox" id="silony" name="supportRep" value="Silony"><label for="silony">Silony</label>
-          <input type="checkbox" id="stryker" name="supportRep" value="Stryker"><label for="stryker">Stryker</label>
-          <input type="checkbox" id="summitMedical" name="supportRep" value="Summit Medical"><label for="summitMedical">Summit Medical</label>
-          <input type="checkbox" id="zimmerBiomet" name="supportRep" value="Zimmer Biomet"><label for="zimmerBiomet">Zimmer Biomet</label>
-          <input type="checkbox" id="otherRep" name="supportRep" value="Other"><label for="otherRep">Other</label>
-        </div>
-        <div id="otherRepSpec" style="display:none;">
-          <label for="otherRepInput">Please specify</label>
-          <input type="text" id="otherRepInput" name="otherRepInput" placeholder="Please specify">
-        </div>
-      </div>
-
-      <label for="submittedBy">Form Submitted by</label>
-      <input type="text" id="submittedBy" name="submittedBy" placeholder="">
-
-      <div id="emailFields">
-        <label for="email">Email Address</label>
-        <input type="text" id="email" name="email" placeholder="">
-
-        <label for="contactNumber">Contact Number</label>
-        <input type="text" id="contactNumber" name="contactNumber" placeholder="">
-      </div>
-
-      <button type="submit">Submit</button>
-    </form>
-    <div style="text-align: center; margin-top: 30px;">
-  <a href="https://calendar.google.com/calendar/embed?src=royallondonhospitaltheatres%40gmail.com&ctz=Europe%2FLondon" 
-     target="_blank" 
-     style="padding: 12px 20px; background-color: #28a745; color: white; border-radius: 6px; text-decoration: none; display: inline-block;">
-    🗓️ View Booking Calendar
-  </a>
-</div>
-
-  </div>
+  <h1>Equipment Request Tracker</h1>
+  <input type="text" id="filterInput" placeholder="Search requests...">
+  <div id="popup" class="equipment-popup"></div>
+  <table>
+    <thead>
+      <tr>
+        <th>Consultant</th>
+        <th>Procedure</th>
+        <th>Date</th>
+        <th>Equipment</th>
+        <th>Clinical Rep?</th>
+        <th>Submitted By</th>
+        <th>Received By</th>
+        <th>Status</th>
+        <th>Location</th>
+        <th>Contact Rep</th>
+        <th>Type</th>
+        <th>PO</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="requestTable"></tbody>
+  </table>
 
   <script>
-    document.getElementById('addEquipment').addEventListener('click', function () {
-      const newEquipmentRow = document.querySelector('.equipment-row').cloneNode(true);
-      document.querySelector('#equipmentRequestForm').insertBefore(newEquipmentRow, document.querySelector('.add-button'));
-      newEquipmentRow.querySelector('input[name="equipmentName[]"]').value = '';
-      newEquipmentRow.querySelector('select[name="equipmentType[]"]').value = '';
-      newEquipmentRow.querySelector('input[name="equipmentQty[]"]').value = '';
+    const firebaseConfig = {
+      apiKey: "AIzaSyBOZvZGFijK2tQFYpwlGSBOgn3m_FSaBSc",
+      authDomain: "equipment-whiteboard.firebaseapp.com",
+      projectId: "equipment-whiteboard"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const popup = document.getElementById('popup');
+    function showPopup(content, x, y) {
+      popup.innerHTML = content;
+      popup.style.left = x + 'px';
+      popup.style.top = y + 'px';
+      popup.style.display = 'block';
+    }
+    function hidePopup() { popup.style.display = 'none'; }
+    document.addEventListener('click', () => hidePopup());
+
+    const statusOptions = ['-To be Updated-', 'Request Received', 'Item Ordered', 'Delivered', 'SSD Processing', 'In Storage', 'Returned to Supplier'];
+    const typeOptions = ['-To be Updated-', 'Loan', 'Consignment'];
+
+    function createOption(value) {
+      const opt = document.createElement('option');
+      opt.value = value;
+      opt.textContent = value;
+      return opt;
+    }
+
+    function updateClass(selectEl, baseClass) {
+      selectEl.className = baseClass + ' ' + selectEl.value;
+    }
+
+    function createRow(docId, data) {
+      const tr = document.createElement('tr');
+      const td = value => { const td = document.createElement('td'); td.textContent = value || ''; return td; };
+
+      tr.dataset.search = `${data.consultant} ${data.plannedProcedure} ${data.location} ${data.status}`.toLowerCase();
+
+      tr.appendChild(td(data.consultant));
+      tr.appendChild(td(data.plannedProcedure));
+      tr.appendChild(td(data.procedureDate));
+
+      const equipTd = document.createElement('td');
+      const viewLink = document.createElement('a');
+      viewLink.href = "#";
+      viewLink.textContent = "View List";
+      viewLink.onclick = e => {
+        e.preventDefault();
+        e.stopPropagation();
+        const list = (data.equipment || []).map(eq => `<li>${eq.name} (${eq.type}) x${eq.quantity}</li>`).join('');
+        showPopup(`<strong>Equipment List:</strong><ul>${list}</ul>`, e.pageX + 10, e.pageY);
+      };
+      equipTd.appendChild(viewLink);
+      tr.appendChild(equipTd);
+
+      tr.appendChild(td(data.clinicalSupportRepNeeded ? 'Yes' : 'No'));
+      tr.appendChild(td(data.submittedBy));
+
+      const receivedTd = document.createElement('td');
+      const receivedInput = document.createElement('input');
+      receivedInput.value = data.receivedBy || '';
+      receivedInput.onchange = () => db.collection("requests").doc(docId).update({ receivedBy: receivedInput.value });
+      receivedTd.appendChild(receivedInput);
+      tr.appendChild(receivedTd);
+
+      const statusTd = document.createElement('td');
+      const statusSel = document.createElement('select');
+      statusSel.className = 'status-tab';
+      statusOptions.forEach(opt => statusSel.appendChild(createOption(opt)));
+      statusSel.value = data.status || '-To be Updated-';
+      updateClass(statusSel, 'status-tab');
+      statusSel.onchange = () => {
+        updateClass(statusSel, 'status-tab');
+        db.collection("requests").doc(docId).update({ status: statusSel.value });
+      };
+      statusTd.appendChild(statusSel);
+      tr.appendChild(statusTd);
+
+      const locationTd = document.createElement('td');
+      const locationInput = document.createElement('input');
+      locationInput.value = data.location || '';
+      locationInput.onchange = () => db.collection("requests").doc(docId).update({ location: locationInput.value });
+      locationTd.appendChild(locationInput);
+      tr.appendChild(locationTd);
+
+      const contactTd = document.createElement('td');
+      const contactInput = document.createElement('input');
+      contactInput.value = data.contactRep || '';
+      contactInput.onchange = () => db.collection("requests").doc(docId).update({ contactRep: contactInput.value });
+      contactTd.appendChild(contactInput);
+      tr.appendChild(contactTd);
+
+      const typeTd = document.createElement('td');
+      const typeSel = document.createElement('select');
+      typeSel.className = 'type-tab';
+      typeOptions.forEach(opt => typeSel.appendChild(createOption(opt)));
+      typeSel.value = data.type || '-To be Updated-';
+      updateClass(typeSel, 'type-tab');
+      typeSel.onchange = () => {
+        updateClass(typeSel, 'type-tab');
+        db.collection("requests").doc(docId).update({ type: typeSel.value });
+      };
+      typeTd.appendChild(typeSel);
+      tr.appendChild(typeTd);
+
+      const poTd = document.createElement('td');
+      const poInput = document.createElement('input');
+      poInput.value = data.poNumber || '';
+      poInput.onchange = () => db.collection("requests").doc(docId).update({ poNumber: poInput.value });
+      poTd.appendChild(poInput);
+      tr.appendChild(poTd);
+
+      const actionTd = document.createElement('td');
+      actionTd.className = "actions";
+      const delBtn = document.createElement('button');
+      delBtn.textContent = '🗑️';
+      delBtn.onclick = () => {
+        if (confirm("Delete this request?")) {
+          db.collection("requests").doc(docId).delete();
+        }
+      };
+      actionTd.appendChild(delBtn);
+      tr.appendChild(actionTd);
+
+      return tr;
+    }
+
+    db.collection("requests").orderBy("timestamp", "desc").onSnapshot(snapshot => {
+      const table = document.getElementById("requestTable");
+      table.innerHTML = "";
+      snapshot.forEach(doc => {
+        const row = createRow(doc.id, doc.data());
+        table.appendChild(row);
+      });
     });
 
-    document.addEventListener('click', function (event) {
-      if (event.target && event.target.classList.contains('remove-equipment')) {
-        event.target.closest('.equipment-row').remove();
-      }
-    });
-
-    document.getElementById('clinicalSupportRepNeeded').addEventListener('change', function () {
-      const clinicalSupportRepDiv = document.getElementById('clinicalSupportRep');
-      const checkboxes = clinicalSupportRepDiv.querySelectorAll('input[type="checkbox"]');
-
-      if (this.checked) {
-        clinicalSupportRepDiv.style.display = 'block';
-      } else {
-        clinicalSupportRepDiv.style.display = 'none';
-        checkboxes.forEach(checkbox => checkbox.checked = false);
-      }
-    });
-
-    document.getElementById('otherRep').addEventListener('change', function () {
-      document.getElementById('otherRepSpec').style.display = this.checked ? 'block' : 'none';
-    });
-
-    document.getElementById('submittedBy').addEventListener('input', function () {
-      const emailFields = document.getElementById('emailFields');
-      emailFields.style.display = this.value.trim() ? 'block' : 'none';
+    document.getElementById('filterInput').addEventListener('input', function () {
+      const value = this.value.toLowerCase();
+      document.querySelectorAll('#requestTable tr').forEach(row => {
+        row.style.display = row.dataset.search.includes(value) ? '' : 'none';
+      });
     });
   </script>
-
 </body>
 </html>
