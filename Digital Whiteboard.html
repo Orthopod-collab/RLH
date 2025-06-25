@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>RLH Trauma and Orthopaedics Digital Whiteboard</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 1rem;
+      background-color: #f4f6f8;
+      color: #333;
+    }
+    h1, h2 {
+      color: #1a3d5d;
+    }
+    select, button {
+      padding: 0.5rem;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+      margin: 0.5rem 0.5rem 0.5rem 0;
+    }
+    button {
+      background-color: #007acc;
+      color: white;
+      cursor: pointer;
+    }
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+      margin-top: 1rem;
+    }
+    .day {
+      background: #ffffff;
+      padding: 1rem;
+      border-radius: 6px;
+      text-align: center;
+      cursor: pointer;
+      border: 1px solid #ddd;
+      transition: 0.3s;
+      position: relative;
+    }
+    .day:hover {
+      background-color: #d0e7f9;
+    }
+    .has-request {
+      background-color: #e0f7e0;
+      border: 2px solid #2e7d32;
+    }
+    .consultant-label {
+      position: absolute;
+      bottom: 4px;
+      right: 4px;
+      font-size: 10px;
+      color: #555;
+    }
+    .request-card {
+      background: #ffffff;
+      padding: 1rem;
+      border-radius: 6px;
+      margin-top: 1rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .label {
+      font-weight: bold;
+      color: #1a3d5d;
+    }
+    .reminder {
+      background-color: #e8f4f8;
+      border-left: 4px solid #007acc;
+      padding: 0.5rem 1rem;
+      margin: 0.5rem 0;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <h1>RLH Trauma and Orthopaedics Digital Whiteboard</h1>
+  <h2>📅 Planned Procedures (Next 14 Days)</h2>
+  <div id="upcomingReminders"></div>
+  <h2>⏳ Follow-Up Review (Day 1 to 7 After Today)</h2>
+  <div id="followupReminders"></div>
+
+  <div>
+    <label for="month">Month:</label>
+    <select id="month"></select>
+    <label for="year">Year:</label>
+    <select id="year"></select>
+    <button onclick="renderCalendar()">Go</button>
+  </div>
+
+  <div class="calendar" id="calendarGrid"></div>
+  <div id="requestDetails"></div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBOZvZGFijK2tQFYpwlGSBOgn3m_FSaBSc",
+      authDomain: "equipment-whiteboard.firebaseapp.com",
+      projectId: "equipment-whiteboard",
+      storageBucket: "equipment-whiteboard.appspot.com",
+      messagingSenderId: "152207404326",
+      appId: "1:152207404326:web:096ee36516c4e1cf7d65e7"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    let requestData = {};
+
+    function populateMonthYear() {
+      const monthSelect = document.getElementById("month");
+      const yearSelect = document.getElementById("year");
+      for (let m = 0; m < 12; m++) {
+        const opt = document.createElement("option");
+        opt.value = m;
+        opt.text = new Date(2025, m).toLocaleString('default', { month: 'long' });
+        monthSelect.appendChild(opt);
+      }
+      for (let y = 2025; y <= 2030; y++) {
+        const opt = document.createElement("option");
+        opt.value = y;
+        opt.text = y;
+        yearSelect.appendChild(opt);
+      }
+      const today = new Date();
+      monthSelect.value = today.getMonth();
+      yearSelect.value = today.getFullYear();
+    }
+
+    function fetchDataAndRender() {
+      requestData = {};
+      db.collection("requests").onSnapshot(snapshot => {
+        requestData = {};
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          const dateStr = data.procedureDate;
+          if (!requestData[dateStr]) requestData[dateStr] = [];
+          requestData[dateStr].push({
+            consultant: data.consultant || "Pending",
+            procedure: data.plannedProcedure || "Pending",
+            equipment: data.equipment && Array.isArray(data.equipment) ? data.equipment.map(e => e.name).join(", ") : "Pending",
+            type: data.type || "Unknown",
+            requestedBy: data.requestedBy || data.submittedBy || "Unknown",
+            receivedBy: data.receivedBy || "Pending",
+            status: data.status || "Pending",
+            location: data.location || "Pending",
+            contactRep: data.contactRep || " - ",
+            timestamp: data.timestamp ? new Date(data.timestamp.seconds * 1000).toLocaleString() : "Pending"
+          });
+        });
+        renderCalendar();
+      });
+    }
+
+    function renderCalendar() {
+      const month = parseInt(document.getElementById("month").value);
+      const year = parseInt(document.getElementById("year").value);
+      const grid = document.getElementById("calendarGrid");
+      grid.innerHTML = "";
+      const firstDay = new Date(year, month, 1);
+      const lastDay = new Date(year, month + 1, 0);
+      const startDay = firstDay.getDay();
+      for (let i = 0; i < startDay; i++) grid.appendChild(document.createElement("div"));
+
+      for (let d = 1; d <= lastDay.getDate(); d++) {
+        const date = new Date(year, month, d);
+        const iso = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        const cell = document.createElement("div");
+        cell.className = "day";
+        cell.textContent = d;
+        if (requestData[iso]) {
+          cell.classList.add("has-request");
+          const consultant = requestData[iso][0]?.consultant || "";
+          const label = document.createElement("div");
+          label.className = "consultant-label";
+          label.textContent = consultant;
+          cell.appendChild(label);
+        }
+        cell.onclick = () => showRequests(iso, date.toDateString());
+        grid.appendChild(cell);
+      }
+
+      document.getElementById("requestDetails").innerHTML = '<p>Please select a date to view request details.</p>';
+      renderReminders();
+    }
+
+    function showRequests(isoDate, readableDate) {
+      const section = document.getElementById("requestDetails");
+      section.innerHTML = `<h2>📅 ${readableDate}</h2>`;
+      const requests = requestData[isoDate];
+      if (!requests || requests.length === 0) {
+        section.innerHTML += `<p>No requests for this date.</p>`;
+        return;
+      }
+      requests.forEach(r => {
+        const [repName, repNumber] = r.contactRep.includes(" - ") ? r.contactRep.split(" - ") : [r.contactRep, ""];
+        section.innerHTML += `
+          <div class="request-card">
+            <div><span class="label">Consultant Surgeon:</span> ${r.consultant}</div>
+            <div><span class="label">Procedure:</span> ${r.procedure}</div>
+            <div><span class="label">Requested Equipment:</span> <button onclick="showFloatingList(this, '${r.equipment.replace(/'/g, "\\'")}')">View List</button></div>
+            <div><span class="label">Type:</span> ${r.type}</div>
+            <div><span class="label">Submitted By:</span> ${r.requestedBy}</div>
+            <div><span class="label">Received By:</span> ${r.receivedBy}</div>
+            <div><span class="label">Status:</span> ${r.status}</div>
+            <div><span class="label">Location:</span> ${r.location}</div>
+            <div><span class="label">Contact Rep Name:</span> ${repName || "N/A"}</div>
+            <div><span class="label">Contact Number:</span> ${repNumber || "N/A"}</div>
+            <div><span class="label">Request Made On:</span> ${r.timestamp}</div>
+          </div>`;
+      });
+    }
+
+    function showFloatingList(button, content) {
+      const box = document.createElement("div");
+      box.style.position = "absolute";
+      box.style.background = "#fff";
+      box.style.border = "1px solid #ccc";
+      box.style.padding = "1rem";
+      box.style.borderRadius = "6px";
+      box.style.boxShadow = "0 4px 12px rgba(0,0,0,0.1)";
+      box.style.zIndex = 9999;
+      box.innerText = content;
+      const rect = button.getBoundingClientRect();
+      box.style.left = `${rect.right + 10 + window.scrollX}px`;
+      box.style.top = `${rect.top + window.scrollY}px`;
+
+      const closeBtn = document.createElement("div");
+      closeBtn.innerHTML = "❌";
+      closeBtn.style.position = "absolute";
+      closeBtn.style.top = "5px";
+      closeBtn.style.right = "8px";
+      closeBtn.style.cursor = "pointer";
+      closeBtn.onclick = () => document.body.removeChild(box);
+      box.appendChild(closeBtn);
+
+      document.body.appendChild(box);
+    }
+
+    function renderReminders() {
+      const today = new Date();
+      const upcoming = document.getElementById("upcomingReminders");
+      const followup = document.getElementById("followupReminders");
+      upcoming.innerHTML = "";
+      followup.innerHTML = "";
+      Object.keys(requestData).forEach(dateStr => {
+        const [y, m, d] = dateStr.split("-").map(Number);
+        const date = new Date(y, m - 1, d);
+        const diff = Math.floor((date - today) / (1000 * 60 * 60 * 24));
+        const summary = requestData[dateStr][0];
+        const html = `<div class="reminder"><strong>${date.toDateString()}</strong> – ${summary.procedure} for ${summary.consultant}</div>`;
+        if (diff >= 0 && diff <= 14) upcoming.innerHTML += html;
+        if (diff >= 1 && diff <= 7) followup.innerHTML += html;
+      });
+    }
+
+    populateMonthYear();
+    fetchDataAndRender();
+  </script>
+</body>
+</html>
