@@ -75,6 +75,19 @@
       border-radius: 6px;
       cursor: pointer;
     }
+    .whiteboard-link {
+      padding: 12px 16px;
+      background-color: #6c757d;
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      display: inline-block;
+      transition: background-color 0.3s;
+    }
+    .whiteboard-link:hover {
+      background-color: #5a6268;
+    }
     .toggle-label {
       display: flex;
       align-items: center;
@@ -184,7 +197,10 @@
       <label>Contact Number</label>
       <input type="text" id="contactNumber" required>
 
-      <button type="submit">Submit</button>
+      <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 20px;">
+        <button type="submit">Submit</button>
+        <a href="https://orthopod-collab.github.io/RLH/digiBoard.html" target="_blank" class="whiteboard-link">View Digital Whiteboard</a>
+      </div>
 
       <div class="disclaimer">
         Contact details submitted through this form are used solely for coordinating equipment requests in the context of theatre procedures and will not be shared or stored beyond this scope.
