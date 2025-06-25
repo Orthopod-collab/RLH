@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -58,7 +57,7 @@
         <th>Procedure</th>
         <th>Date</th>
         <th>Equipment</th>
-        <th>Clinical Rep?</th>
+        <th>Notes for Theatre Staff</th>
         <th>Submitted By</th>
         <th>Received By</th>
         <th>Status</th>
@@ -109,15 +108,24 @@
       viewLink.href = "#"; viewLink.textContent = "View List";
       viewLink.onclick = e => {
         e.preventDefault();
-        alert((d.equipment || []).map(eq => `${eq.name} (${eq.type}) x${eq.quantity}`).join("\n"));
+        alert((d.equipment || []).map(eq => `${eq.name} (${eq.type || "N/A"})`).join("\n"));
       };
       equipTd.appendChild(viewLink);
       tr.appendChild(equipTd);
 
-      tr.appendChild(td(d.clinicalSupportRepNeeded ? "Yes" : "No"));
+      const notesTd = document.createElement("td");
+      const notesLink = document.createElement("a");
+      notesLink.href = "#";
+      notesLink.textContent = "View Notes";
+      notesLink.onclick = e => {
+        e.preventDefault();
+        alert(d.notes || "No notes provided.");
+      };
+      notesTd.appendChild(notesLink);
+      tr.appendChild(notesTd);
+
       tr.appendChild(td(d.submittedBy));
 
-      // Editable columns
       const received = document.createElement("input"); received.value = d.receivedBy || ""; received.disabled = true;
       const receivedTd = document.createElement("td"); receivedTd.appendChild(received); tr.appendChild(receivedTd);
 
@@ -131,8 +139,16 @@
       const location = document.createElement("input"); location.value = d.location || ""; location.disabled = true;
       const locationTd = document.createElement("td"); locationTd.appendChild(location); tr.appendChild(locationTd);
 
-      const contact = document.createElement("input"); contact.value = d.contactRep || ""; contact.disabled = true;
-      const contactTd = document.createElement("td"); contactTd.appendChild(contact); tr.appendChild(contactTd);
+      const contactTd = document.createElement("td");
+      if (d.clinicalSupportRepNeeded) {
+        const contact = document.createElement("input");
+        contact.value = d.contactRep || "";
+        contact.disabled = true;
+        contactTd.appendChild(contact);
+      } else {
+        contactTd.textContent = "Not Required";
+      }
+      tr.appendChild(contactTd);
 
       const typeTd = document.createElement("td");
       const typeSpan = document.createElement("span");
@@ -150,7 +166,12 @@
       const delBtn = document.createElement("button"); delBtn.textContent = "🗑️";
 
       editBtn.onclick = () => {
-        received.disabled = location.disabled = contact.disabled = po.disabled = false;
+        received.disabled = location.disabled = po.disabled = false;
+        if (d.clinicalSupportRepNeeded) {
+          const contact = contactTd.querySelector("input");
+          if (contact) contact.disabled = false;
+        }
+
         const statusSel = document.createElement("select");
         statusOptions.forEach(opt => statusSel.appendChild(createOption(opt)));
         statusSel.value = d.status || "-To be Updated-";
@@ -168,17 +189,19 @@
       saveBtn.onclick = () => {
         const newStatus = statusTd.querySelector("select").value;
         const newType = typeTd.querySelector("select").value;
+        const contact = contactTd.querySelector("input");
 
         db.collection("requests").doc(id).update({
           receivedBy: received.value,
           status: newStatus,
           location: location.value,
-          contactRep: contact.value,
+          contactRep: contact ? contact.value : "",
           type: newType,
           poNumber: po.value
         });
 
-        received.disabled = location.disabled = contact.disabled = po.disabled = true;
+        received.disabled = location.disabled = po.disabled = true;
+        if (contact) contact.disabled = true;
 
         statusTd.innerHTML = "";
         const statusSpan = document.createElement("span");
