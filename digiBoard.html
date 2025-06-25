@@ -75,6 +75,13 @@
       margin: 0.5rem 0;
       border-radius: 4px;
     }
+    ul.note-list {
+      margin: 0.5rem 0 0 1rem;
+      padding-left: 1rem;
+    }
+    ul.note-list li {
+      margin-bottom: 0.3rem;
+    }
   </style>
 </head>
 <body>
@@ -143,13 +150,14 @@
             consultant: data.consultant || "Pending",
             procedure: data.plannedProcedure || "Pending",
             equipment: data.equipment && Array.isArray(data.equipment) ? data.equipment.map(e => e.name).join(", ") : "Pending",
-            type: data.type || "Unknown",
+            notes: data.notes || "None",
             requestedBy: data.requestedBy || data.submittedBy || "Unknown",
             receivedBy: data.receivedBy || "Pending",
             status: data.status || "Pending",
             location: data.location || "Pending",
-            contactRep: data.contactRep || " - ",
-            timestamp: data.timestamp ? new Date(data.timestamp.seconds * 1000).toLocaleString() : "Pending"
+            contactRep: data.clinicalSupportRepNeeded ? (data.contactRep || " - ") : "Not Required",
+            type: data.type || "Unknown",
+            date: dateStr
           });
         });
         renderCalendar();
@@ -197,48 +205,24 @@
         return;
       }
       requests.forEach(r => {
-        const [repName, repNumber] = r.contactRep.includes(" - ") ? r.contactRep.split(" - ") : [r.contactRep, ""];
+        const notesLines = r.notes.split(/\n|(?<=\.)\s+/).map(line => line.trim()).filter(Boolean);
         section.innerHTML += `
           <div class="request-card">
-            <div><span class="label">Consultant Surgeon:</span> ${r.consultant}</div>
+            <div><span class="label">Consultant:</span> ${r.consultant}</div>
             <div><span class="label">Procedure:</span> ${r.procedure}</div>
-            <div><span class="label">Requested Equipment:</span> <button onclick="showFloatingList(this, '${r.equipment.replace(/'/g, "\\'")}')">View List</button></div>
-            <div><span class="label">Type:</span> ${r.type}</div>
+            <div><span class="label">Date:</span> ${r.date}</div>
+            <div><span class="label">Equipment:</span> ${r.equipment}</div>
             <div><span class="label">Submitted By:</span> ${r.requestedBy}</div>
             <div><span class="label">Received By:</span> ${r.receivedBy}</div>
             <div><span class="label">Status:</span> ${r.status}</div>
             <div><span class="label">Location:</span> ${r.location}</div>
-            <div><span class="label">Contact Rep Name:</span> ${repName || "N/A"}</div>
-            <div><span class="label">Contact Number:</span> ${repNumber || "N/A"}</div>
-            <div><span class="label">Request Made On:</span> ${r.timestamp}</div>
+            <div><span class="label">Contact Rep:</span> ${r.contactRep}</div>
+            <div><span class="label">Type:</span> ${r.type}</div>
+            <div><span class="label">Notes for Theatre Staff:</span>
+              <ul class="note-list">${notesLines.map(n => `<li>${n}</li>`).join('')}</ul>
+            </div>
           </div>`;
       });
-    }
-
-    function showFloatingList(button, content) {
-      const box = document.createElement("div");
-      box.style.position = "absolute";
-      box.style.background = "#fff";
-      box.style.border = "1px solid #ccc";
-      box.style.padding = "1rem";
-      box.style.borderRadius = "6px";
-      box.style.boxShadow = "0 4px 12px rgba(0,0,0,0.1)";
-      box.style.zIndex = 9999;
-      box.innerText = content;
-      const rect = button.getBoundingClientRect();
-      box.style.left = `${rect.right + 10 + window.scrollX}px`;
-      box.style.top = `${rect.top + window.scrollY}px`;
-
-      const closeBtn = document.createElement("div");
-      closeBtn.innerHTML = "❌";
-      closeBtn.style.position = "absolute";
-      closeBtn.style.top = "5px";
-      closeBtn.style.right = "8px";
-      closeBtn.style.cursor = "pointer";
-      closeBtn.onclick = () => document.body.removeChild(box);
-      box.appendChild(closeBtn);
-
-      document.body.appendChild(box);
     }
 
     function renderReminders() {
