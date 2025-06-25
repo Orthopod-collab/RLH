@@ -3,261 +3,274 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Equipment Request Tracker</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet"/>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <title>Equipment Request Form</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
   <style>
     body {
       font-family: 'Inter', sans-serif;
-      background-color: #f4f7fa;
-      margin: 0;
-      padding: 1rem;
+      padding: 40px;
+      background-color: #f4f7fb;
+      color: #333;
     }
-    h1 {
+    .form-container {
+      max-width: 750px;
+      margin: auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      margin-top: 40px;
+    }
+    h1, h2 {
       text-align: center;
-      color: #1a3d5d;
-      margin-bottom: 1rem;
+      font-weight: 600;
+      margin-bottom: 20px;
     }
-    #filterInput {
-      width: 250px;
-      padding: 6px;
-      font-size: 13px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      box-sizing: border-box;
+    label {
+      font-weight: 500;
       display: block;
-      margin: 0 auto 1rem auto;
+      margin: 15px 0 5px;
     }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
-    }
-    th, td {
-      padding: 6px 8px;
-      border: 1px solid #ddd;
-      vertical-align: middle;
-    }
-    th {
-      background-color: #eaf0f6;
-    }
-    tr:nth-child(even) {
-      background-color: #f9fcff;
-    }
-    input, select {
-      font-size: 12px;
-      padding: 4px;
-      width: 100%;
-      box-sizing: border-box;
+    input[type="text"],
+    input[type="number"],
+    input[type="date"],
+    select {
+      padding: 12px;
       border: 1px solid #ccc;
-      border-radius: 4px;
+      border-radius: 6px;
+      width: 100%;
+      margin-bottom: 20px;
     }
-    select.status-tab, select.type-tab {
-      border: none;
-      color: #fff;
-      font-weight: bold;
-      text-align: center;
-      padding: 6px;
-      border-radius: 4px;
-      appearance: none;
+    .equipment-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
     }
-    .Request\ Received { background-color: #42a5f5; }
-    .Item\ Ordered { background-color: #ffd54f; color: #333; }
-    .Delivered { background-color: #81c784; }
-    .SSD\ Processing { background-color: #ffb74d; color: #333; }
-    .In\ Storage { background-color: #9575cd; }
-    .Returned\ to\ Supplier { background-color: #f06292; }
-    .Loan { background-color: #4db6ac; }
-    .Consignment { background-color: #7986cb; }
-    .\-To\ be\ Updated\- { background-color: #b0bec5; color: #333; }
-    .actions button {
-      background: none;
+    .equipment-row input[name="equipmentName[]"] { flex: 3; }
+    .equipment-row input[name="supplier[]"] { flex: 2; }
+    .equipment-row select[name="equipmentType[]"] { flex: 1.5; }
+    .equipment-row input[name="equipmentQty[]"] { flex: 0.7; }
+    .equipment-row button {
+      background-color: #dc3545;
+      color: white;
       border: none;
-      font-size: 16px;
+      padding: 10px 14px;
+      border-radius: 6px;
       cursor: pointer;
-      margin: 0 3px;
     }
-    .equipment-popup {
+    .add-button {
+      margin-top: 10px;
+      padding: 10px 16px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button[type="submit"] {
+      padding: 12px 16px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .toggle-label {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    .toggle-label span {
+      margin-right: 10px;
+    }
+    .toggle {
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 26px;
+    }
+    .toggle input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .slider {
       position: absolute;
-      background: white;
-      border: 1px solid #ccc;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      padding: 10px;
-      font-size: 12px;
-      max-width: 300px;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #ccc;
+      transition: .4s;
+      border-radius: 26px;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 20px;
+      width: 20px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+    input:checked + .slider {
+      background-color: #28a745;
+    }
+    input:checked + .slider:before {
+      transform: translateX(24px);
+    }
+    #supportContactContainer {
       display: none;
-      z-index: 999;
+    }
+    .disclaimer {
+      font-size: 0.85rem;
+      color: #666;
+      margin-top: 30px;
+      border-top: 1px solid #ccc;
+      padding-top: 15px;
     }
   </style>
 </head>
 <body>
-  <h1>Equipment Request Tracker</h1>
-  <input type="text" id="filterInput" placeholder="Search requests...">
-  <div id="popup" class="equipment-popup"></div>
-  <table>
-    <thead>
-      <tr>
-        <th>Consultant</th>
-        <th>Procedure</th>
-        <th>Date</th>
-        <th>Equipment</th>
-        <th>Clinical Rep?</th>
-        <th>Submitted By</th>
-        <th>Received By</th>
-        <th>Status</th>
-        <th>Location</th>
-        <th>Contact Rep</th>
-        <th>Type</th>
-        <th>PO</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody id="requestTable"></tbody>
-  </table>
+  <div class="form-container">
+    <h1>RLH Trauma and Orthopaedic Theatres</h1>
+    <h2>Equipment Request Form</h2>
+    <form id="requestForm">
+      <label>Requesting Consultant</label>
+      <input type="text" id="consultant" required>
 
-  <script>
+      <label>Planned Procedure</label>
+      <input type="text" id="plannedProcedure" required>
+
+      <label>Date of Procedure</label>
+      <input type="date" id="procedureDate" required>
+
+      <label>Equipment(s) Needed</label>
+      <div class="equipment-row">
+        <input type="text" name="equipmentName[]" placeholder="Item Description" required>
+        <input type="text" name="supplier[]" placeholder="Product Supplier" required>
+        <select name="equipmentType[]" required>
+          <option value="">Type</option>
+          <option value="Instrument Tray">Instrument Tray</option>
+          <option value="Consumable">Consumable</option>
+          <option value="Implant">Implant</option>
+        </select>
+        <input type="number" name="equipmentQty[]" placeholder="Qty" min="1" max="50" required>
+        <button type="button" class="remove-equipment">Remove</button>
+      </div>
+      <button type="button" class="add-button">Add Equipment</button>
+
+      <label class="toggle-label">
+        <span>Is Clinical Support Rep Needed?</span>
+        <label class="toggle">
+          <input type="checkbox" id="toggleSupport">
+          <span class="slider"></span>
+        </label>
+      </label>
+
+      <div id="supportContactContainer">
+        <label>Clinical Support Rep Name</label>
+        <input type="text" id="contactRepName">
+        <label>Clinical Support Rep Contact Number</label>
+        <input type="text" id="contactRepNumber">
+      </div>
+
+      <label>Form Submitted by</label>
+      <input type="text" id="submittedBy" required>
+
+      <label>Email Address</label>
+      <input type="text" id="email" required>
+
+      <label>Contact Number</label>
+      <input type="text" id="contactNumber" required>
+
+      <button type="submit">Submit</button>
+
+      <div class="disclaimer">
+        Contact details submitted through this form are used solely for coordinating equipment requests in the context of theatre procedures and will not be shared or stored beyond this scope.
+      </div>
+    </form>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
     const firebaseConfig = {
       apiKey: "AIzaSyBOZvZGFijK2tQFYpwlGSBOgn3m_FSaBSc",
       authDomain: "equipment-whiteboard.firebaseapp.com",
-      projectId: "equipment-whiteboard"
+      projectId: "equipment-whiteboard",
+      storageBucket: "equipment-whiteboard.appspot.com",
+      messagingSenderId: "152207404326",
+      appId: "1:152207404326:web:096ee36516c4e1cf7d65e7"
     };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
 
-    const popup = document.getElementById('popup');
-    function showPopup(content, x, y) {
-      popup.innerHTML = content;
-      popup.style.left = x + 'px';
-      popup.style.top = y + 'px';
-      popup.style.display = 'block';
-    }
-    function hidePopup() { popup.style.display = 'none'; }
-    document.addEventListener('click', () => hidePopup());
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-    const statusOptions = ['-To be Updated-', 'Request Received', 'Item Ordered', 'Delivered', 'SSD Processing', 'In Storage', 'Returned to Supplier'];
-    const typeOptions = ['-To be Updated-', 'Loan', 'Consignment'];
+    document.getElementById("requestForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
 
-    function createOption(value) {
-      const opt = document.createElement('option');
-      opt.value = value;
-      opt.textContent = value;
-      return opt;
-    }
+      const consultant = document.getElementById("consultant").value;
+      const plannedProcedure = document.getElementById("plannedProcedure").value;
+      const procedureDate = document.getElementById("procedureDate").value;
+      const submittedBy = document.getElementById("submittedBy").value;
+      const email = document.getElementById("email").value;
+      const contactNumber = document.getElementById("contactNumber").value;
+      const clinicalSupportRepNeeded = document.getElementById("toggleSupport").checked;
+      const contactRepName = document.getElementById("contactRepName").value.trim();
+      const contactRepNumber = document.getElementById("contactRepNumber").value.trim();
 
-    function updateClass(selectEl, baseClass) {
-      selectEl.className = baseClass + ' ' + selectEl.value;
-    }
+      if (clinicalSupportRepNeeded && (!contactRepName || !contactRepNumber)) {
+        alert("Please provide Clinical Support Rep Name and Number.");
+        return;
+      }
 
-    function createRow(docId, data) {
-      const tr = document.createElement('tr');
-      const td = value => { const td = document.createElement('td'); td.textContent = value || ''; return td; };
+      const equipment = Array.from(document.querySelectorAll(".equipment-row")).map(row => ({
+        name: row.querySelector('input[name="equipmentName[]"]').value,
+        supplier: row.querySelector('input[name="supplier[]"]').value,
+        type: row.querySelector('select[name="equipmentType[]"]').value,
+        quantity: parseInt(row.querySelector('input[name="equipmentQty[]"]').value)
+      }));
 
-      tr.dataset.search = `${data.consultant} ${data.plannedProcedure} ${data.location} ${data.status}`.toLowerCase();
-
-      tr.appendChild(td(data.consultant));
-      tr.appendChild(td(data.plannedProcedure));
-      tr.appendChild(td(data.procedureDate));
-
-      const equipTd = document.createElement('td');
-      const viewLink = document.createElement('a');
-      viewLink.href = "#";
-      viewLink.textContent = "View List";
-      viewLink.onclick = e => {
-        e.preventDefault();
-        e.stopPropagation();
-        const list = (data.equipment || []).map(eq => `<li>${eq.name} (${eq.type}) x${eq.quantity}</li>`).join('');
-        showPopup(`<strong>Equipment List:</strong><ul>${list}</ul>`, e.pageX + 10, e.pageY);
-      };
-      equipTd.appendChild(viewLink);
-      tr.appendChild(equipTd);
-
-      tr.appendChild(td(data.clinicalSupportRepNeeded ? 'Yes' : 'No'));
-      tr.appendChild(td(data.submittedBy));
-
-      const receivedTd = document.createElement('td');
-      const receivedInput = document.createElement('input');
-      receivedInput.value = data.receivedBy || '';
-      receivedInput.onchange = () => db.collection("requests").doc(docId).update({ receivedBy: receivedInput.value });
-      receivedTd.appendChild(receivedInput);
-      tr.appendChild(receivedTd);
-
-      const statusTd = document.createElement('td');
-      const statusSel = document.createElement('select');
-      statusSel.className = 'status-tab';
-      statusOptions.forEach(opt => statusSel.appendChild(createOption(opt)));
-      statusSel.value = data.status || '-To be Updated-';
-      updateClass(statusSel, 'status-tab');
-      statusSel.onchange = () => {
-        updateClass(statusSel, 'status-tab');
-        db.collection("requests").doc(docId).update({ status: statusSel.value });
-      };
-      statusTd.appendChild(statusSel);
-      tr.appendChild(statusTd);
-
-      const locationTd = document.createElement('td');
-      const locationInput = document.createElement('input');
-      locationInput.value = data.location || '';
-      locationInput.onchange = () => db.collection("requests").doc(docId).update({ location: locationInput.value });
-      locationTd.appendChild(locationInput);
-      tr.appendChild(locationTd);
-
-      const contactTd = document.createElement('td');
-      const contactInput = document.createElement('input');
-      contactInput.value = data.contactRep || '';
-      contactInput.onchange = () => db.collection("requests").doc(docId).update({ contactRep: contactInput.value });
-      contactTd.appendChild(contactInput);
-      tr.appendChild(contactTd);
-
-      const typeTd = document.createElement('td');
-      const typeSel = document.createElement('select');
-      typeSel.className = 'type-tab';
-      typeOptions.forEach(opt => typeSel.appendChild(createOption(opt)));
-      typeSel.value = data.type || '-To be Updated-';
-      updateClass(typeSel, 'type-tab');
-      typeSel.onchange = () => {
-        updateClass(typeSel, 'type-tab');
-        db.collection("requests").doc(docId).update({ type: typeSel.value });
-      };
-      typeTd.appendChild(typeSel);
-      tr.appendChild(typeTd);
-
-      const poTd = document.createElement('td');
-      const poInput = document.createElement('input');
-      poInput.value = data.poNumber || '';
-      poInput.onchange = () => db.collection("requests").doc(docId).update({ poNumber: poInput.value });
-      poTd.appendChild(poInput);
-      tr.appendChild(poTd);
-
-      const actionTd = document.createElement('td');
-      actionTd.className = "actions";
-      const delBtn = document.createElement('button');
-      delBtn.textContent = '🗑️';
-      delBtn.onclick = () => {
-        if (confirm("Delete this request?")) {
-          db.collection("requests").doc(docId).delete();
-        }
-      };
-      actionTd.appendChild(delBtn);
-      tr.appendChild(actionTd);
-
-      return tr;
-    }
-
-    db.collection("requests").orderBy("timestamp", "desc").onSnapshot(snapshot => {
-      const table = document.getElementById("requestTable");
-      table.innerHTML = "";
-      snapshot.forEach(doc => {
-        const row = createRow(doc.id, doc.data());
-        table.appendChild(row);
-      });
+      try {
+        await addDoc(collection(db, "requests"), {
+          consultant,
+          plannedProcedure,
+          procedureDate,
+          submittedBy,
+          email,
+          contactNumber,
+          equipment,
+          clinicalSupportRepNeeded,
+          contactRepName,
+          contactRepNumber,
+          contactRep: contactRepName && contactRepNumber ? `${contactRepName} - ${contactRepNumber}` : contactRepName,
+          timestamp: serverTimestamp()
+        });
+        alert("Request submitted successfully!");
+        e.target.reset();
+        document.getElementById("supportContactContainer").style.display = "none";
+      } catch (err) {
+        console.error(err);
+        alert("There was an error submitting your request.");
+      }
     });
 
-    document.getElementById('filterInput').addEventListener('input', function () {
-      const value = this.value.toLowerCase();
-      document.querySelectorAll('#requestTable tr').forEach(row => {
-        row.style.display = row.dataset.search.includes(value) ? '' : 'none';
-      });
+    document.querySelector('.add-button').addEventListener('click', () => {
+      const row = document.querySelector('.equipment-row').cloneNode(true);
+      row.querySelectorAll('input, select').forEach(el => el.value = '');
+      document.querySelector('form').insertBefore(row, document.querySelector('.add-button'));
+    });
+
+    document.addEventListener('click', function(e) {
+      if (e.target.classList.contains('remove-equipment')) {
+        e.target.closest('.equipment-row').remove();
+      }
+    });
+
+    document.getElementById('toggleSupport').addEventListener('change', function () {
+      document.getElementById('supportContactContainer').style.display = this.checked ? 'block' : 'none';
     });
   </script>
 </body>
